@@ -60,7 +60,6 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .plot-btn:hover{opacity:.88}
 .plot-btn:active{opacity:.72;transform:scale(.98)}
 
-/* ── Toolbar ── */
 .graph-toolbar{display:flex;align-items:center;justify-content:space-between;padding:.45rem 1rem;border-bottom:0.5px solid var(--border);background:var(--panel);gap:8px;flex-wrap:wrap;flex-shrink:0}
 .graph-info{font-size:12px;color:var(--muted);font-family:Georgia,serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .graph-info span{color:var(--accent)}
@@ -69,7 +68,6 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .tbtn:hover{background:var(--border2);color:var(--text)}
 .tbtn.active{background:#2a1f3d;color:var(--accent);border-color:#4c3a7a}
 
-/* ── hint strip below toolbar ── */
 .hint-strip{font-size:10px;color:var(--hint);padding:.3rem 1rem;background:var(--panel);border-bottom:0.5px solid var(--border);flex-shrink:0}
 
 #graph{flex:1;min-height:0}
@@ -87,12 +85,11 @@ body{display:flex;flex-direction:column;min-height:100vh}
 </div>
 
 <div class="main">
-
   <div class="left-panel">
     <div>
       <div class="lbl">Funksiya kiriting</div>
       <input class="formula-input" id="formula" type="text"
-        placeholder="x^2 + sin(y)  yoki  1/x  ..."
+        placeholder="x^2  yoki  sin(x)  yoki  x^2+y^2"
         autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
 
@@ -167,7 +164,6 @@ body{display:flex;flex-direction:column;min-height:100vh}
       </div>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -179,7 +175,10 @@ const FUNCTIONS = new Set(['sin','cos','tan','asin','acos','atan','atan2','sinh'
 let gridVisible = true;
 let dragMode = 'pan';
 let is3D = false;
-let currentRange = { xlo:-10, xhi:10, ylo:-10, yhi:10 };
+
+// Doimiy: -10 dan 10 gacha, 1 birlik interval
+const AXIS_LO = -10;
+const AXIS_HI = 10;
 
 function extractVars(expr){
   const tokens = math.parse(expr);
@@ -198,9 +197,9 @@ function toLatex(raw){
 function computeDomain(expr, vars){
   const info = {};
   vars.forEach(v=>{
-    if(expr.includes('sqrt')||expr.includes('log')) info[v]='taqiqlar mavjud';
-    else if(expr.includes('1/'+v)||expr.includes('/'+v)) info[v]='ℝ \\ {0}';
-    else info[v]='(−∞, +∞)';
+    if(expr.includes('sqrt')||expr.includes('log')) info[v]='[0, +\u221e)';
+    else if(expr.includes('1/'+v)||expr.includes('/'+v)) info[v]='\u211d \\ {0}';
+    else info[v]='(\u2212\u221e, +\u221e)';
   });
   return info;
 }
@@ -223,16 +222,16 @@ document.getElementById('formula').addEventListener('input', function(){
     const vars = extractVars(val);
     dot.classList.add('active');
     if(vars.length===0)      dtxt.innerHTML='<strong>Konstanta</strong>';
-    else if(vars.length===1) dtxt.innerHTML=`<strong>${vars[0]}</strong> — 2D grafik`;
-    else if(vars.length===2) dtxt.innerHTML=`<strong>${vars.join(', ')}</strong> — 3D sirt`;
-    else                     dtxt.innerHTML=`<strong>${vars.join(', ')}</strong> — ${vars.length} o\'zgaruvchi`;
+    else if(vars.length===1) dtxt.innerHTML=`<strong>${vars[0]}</strong> \u2014 2D grafik`;
+    else if(vars.length===2) dtxt.innerHTML=`<strong>${vars.join(', ')}</strong> \u2014 3D sirt`;
+    else                     dtxt.innerHTML=`<strong>${vars.join(', ')}</strong> \u2014 ${vars.length} o'zgaruvchi`;
 
     const dom = computeDomain(val, vars);
     const ig = document.getElementById('info-grid');
     ig.innerHTML = vars.map(v=>`
       <div class="info-card">
         <div class="ic-lbl">Domen (${v})</div>
-        <div class="ic-val">${v} ∈ ${dom[v]}</div>
+        <div class="ic-val">${v} \u2208 ${dom[v]}</div>
       </div>`).join('');
     if(vars.length){
       ig.innerHTML+=`<div class="info-card"><div class="ic-lbl">O'zgaruvchilar</div><div class="ic-val">${vars.length} ta</div></div>`;
@@ -253,21 +252,26 @@ function ins(txt){
   inp.focus();
 }
 
-/* ── Axis config: clearly visible X and Y axes ── */
-function axisBase(title){
+// O'q sozlamalari — -10..10, har 1 birlikda chiziq
+function axisBase(title, lo, hi){
   return {
     title:{text: title, font:{color:'#888', size:13}},
     color:'#666',
-    gridcolor:'#1e1e1e',
+    gridcolor:'#202020',
     gridwidth:1,
+    dtick: 1,           // har 1 birlikda chiziq
+    tick0: 0,
+    tickmode: 'linear',
+    range: [lo, hi],
     zerolinecolor:'#555',
     zerolinewidth:2,
     linecolor:'#444',
     linewidth:1,
     showline:true,
     tickcolor:'#444',
-    tickfont:{color:'#666', size:11},
+    tickfont:{color:'#555', size:10},
     showgrid:true,
+    fixedrange: false,
   };
 }
 
@@ -282,6 +286,8 @@ function axis3DBase(title){
     showgrid:true,
     showline:true,
     linecolor:'#333',
+    dtick: 1,
+    tickmode: 'linear',
   };
 }
 
@@ -294,7 +300,7 @@ const PLOTLY_CONFIG = {
   toImageButtonOptions:{format:'png', filename:'grafik', scale:2},
 };
 
-let lastExpr='', lastVars=[], lastLo={}, lastHi={};
+let is3DMode = false;
 
 function plot(){
   const raw = document.getElementById('formula').value.trim();
@@ -306,7 +312,6 @@ function plot(){
   try{
     math.parse(raw);
     vars = extractVars(raw);
-    lastExpr=raw; lastVars=vars;
   }catch(e){
     err.textContent='Formulada xato: '+e.message;
     err.style.display='block';
@@ -316,28 +321,18 @@ function plot(){
   document.getElementById('graph-toolbar').style.display='flex';
   document.getElementById('hint-strip').style.display='block';
   document.getElementById('graph-info').innerHTML =
-    `<span>f = ${raw}</span>&nbsp;·&nbsp;${vars.length===0?'konstanta':vars.join(', ')} o'zgaruvchi`;
+    `<span>f = ${raw}</span>&nbsp;\u00b7&nbsp;${vars.length===0?'konstanta':vars.join(', ')} o'zgaruvchi`;
 
   if(vars.length<=1){ is3D=false; plot2D(raw, vars.length?vars:['x']); }
   else              { is3D=true;  plot3D(raw, vars); }
 
-  document.getElementById('mode-btn').textContent = is3D ? '↻ Aylantirish' : '✥ Surish';
-}
-
-function smartRange(expr, v){
-  let lo=-10, hi=10;
-  if(expr.includes('sqrt')||expr.includes('log')) lo=0.001;
-  if(expr.includes('1/'+v)||expr.includes('/'+v)){ lo=0.3; hi=10; }
-  if(expr.includes('tan')) { lo=-1.4; hi=1.4; }
-  lastLo[v]=lo; lastHi[v]=hi;
-  return {lo,hi};
+  document.getElementById('mode-btn').textContent = is3D ? '\u21bb Aylantirish' : '\u2725 Surish';
 }
 
 function plot2D(expr, vars){
   const v = vars[0]||'x';
-  const {lo,hi} = smartRange(expr,v);
-  currentRange = {xlo:lo, xhi:hi, ylo:null, yhi:null};
-  const N=800;
+  const lo = AXIS_LO, hi = AXIS_HI;
+  const N = 1000;
   const xs=[], ys=[];
   const step=(hi-lo)/(N-1);
   for(let i=0;i<N;i++){
@@ -350,17 +345,40 @@ function plot2D(expr, vars){
     }catch(e){ xs.push(xv); ys.push(null); }
   }
 
+  // Y oralig'ini ma'lumotga qarab cheklash (-10..10 atrofida)
+  const validY = ys.filter(y=>y!==null);
+  const yMin = validY.length ? Math.max(Math.min(...validY)*1.1, -50) : -10;
+  const yMax = validY.length ? Math.min(Math.max(...validY)*1.1,  50) :  10;
+
   const layout={
     paper_bgcolor:'#0a0a0a',
     plot_bgcolor:'#0a0a0a',
     font:{color:'#888', family:'Segoe UI,system-ui,sans-serif', size:11},
-    margin:{l:55,r:25,t:28,b:55},
+    margin:{l:50,r:20,t:20,b:50},
     dragmode: dragMode,
-    xaxis: axisBase(v),
-    yaxis: axisBase('f('+v+')'),
-    shapes:[
-      {type:'line',x0:lo,x1:hi,y0:0,y1:0,line:{color:'#444',width:1.5}},
-    ],
+    xaxis: axisBase(v, lo, hi),
+    yaxis: {
+      title:{text:'f('+v+')', font:{color:'#888', size:13}},
+      color:'#666',
+      gridcolor:'#202020',
+      gridwidth:1,
+      dtick: 1,
+      tick0: 0,
+      tickmode: 'linear',
+      range: [
+        Math.max(Math.floor(yMin), -10),
+        Math.min(Math.ceil(yMax),   10)
+      ],
+      zerolinecolor:'#555',
+      zerolinewidth:2,
+      linecolor:'#444',
+      linewidth:1,
+      showline:true,
+      tickcolor:'#444',
+      tickfont:{color:'#555', size:10},
+      showgrid:true,
+      fixedrange: false,
+    },
     hovermode:'x unified',
     hoverlabel:{bgcolor:'#1a1a1a',bordercolor:'#333',font:{color:'#ccc',size:12}},
   };
@@ -368,9 +386,9 @@ function plot2D(expr, vars){
   const trace={
     x:xs, y:ys,
     mode:'lines',
-    line:{color:'#a78bfa', width:2.5},
+    line:{color:'#a78bfa', width:2},
     connectgaps:false,
-    hovertemplate:`${v}: %{x:.4f}<br>f: %{y:.4f}<extra></extra>`,
+    hovertemplate:`${v}: %{x:.3f}<br>f: %{y:.3f}<extra></extra>`,
   };
 
   Plotly.react('graph',[trace], layout, PLOTLY_CONFIG);
@@ -378,10 +396,10 @@ function plot2D(expr, vars){
 
 function plot3D(expr, vars){
   const v1=vars[0], v2=vars[1];
-  const r1=smartRange(expr,v1), r2=smartRange(expr,v2);
-  const N=70;
-  const xs=linspace(r1.lo,r1.hi,N);
-  const ys=linspace(r2.lo,r2.hi,N);
+  const lo=AXIS_LO, hi=AXIS_HI;
+  const N=60;
+  const xs=linspace(lo,hi,N);
+  const ys=linspace(lo,hi,N);
   const zs=[];
   for(let j=0;j<N;j++){
     const row=[];
@@ -407,14 +425,14 @@ function plot3D(expr, vars){
       aspectmode:'auto',
     },
     font:{color:'#888', family:'Segoe UI,system-ui,sans-serif', size:11},
-    margin:{l:0,r:0,t:28,b:0},
+    margin:{l:0,r:0,t:20,b:0},
   };
 
   const trace={
     type:'surface', x:xs, y:ys, z:zs,
     colorscale:[[0,'#10b981'],[0.25,'#0891b2'],[0.5,'#2563eb'],[0.75,'#7c3aed'],[1,'#c4b5fd']],
-    contours:{z:{show:true,color:'rgba(255,255,255,0.3)',width:1,highlight:true}},
-    hovertemplate:`${v1}: %{x:.3f}<br>${v2}: %{y:.3f}<br>z: %{z:.3f}<extra></extra>`,
+    contours:{z:{show:true,color:'rgba(255,255,255,0.2)',width:1,highlight:true}},
+    hovertemplate:`${v1}: %{x:.2f}<br>${v2}: %{y:.2f}<br>z: %{z:.2f}<extra></extra>`,
     lighting:{ambient:0.7,diffuse:0.6,specular:0.3,roughness:0.5},
     showscale:true,
     colorbar:{tickfont:{color:'#555'},title:{text:'z',font:{color:'#666'}}},
@@ -429,7 +447,6 @@ function linspace(a,b,n){
   return arr;
 }
 
-/* ── Controls ── */
 function zoomIn(){
   if(is3D){
     const el=document.getElementById('graph');
@@ -443,10 +460,7 @@ function zoomIn(){
     const xa=el._fullLayout.xaxis, ya=el._fullLayout.yaxis;
     const xm=(xa.range[0]+xa.range[1])/2, xr=(xa.range[1]-xa.range[0])*0.35;
     const ym=(ya.range[0]+ya.range[1])/2, yr=(ya.range[1]-ya.range[0])*0.35;
-    Plotly.relayout('graph',{
-      'xaxis.range':[xm-xr, xm+xr],
-      'yaxis.range':[ym-yr, ym+yr],
-    });
+    Plotly.relayout('graph',{'xaxis.range':[xm-xr, xm+xr],'yaxis.range':[ym-yr, ym+yr]});
   }
 }
 
@@ -463,10 +477,7 @@ function zoomOut(){
     const xa=el._fullLayout.xaxis, ya=el._fullLayout.yaxis;
     const xm=(xa.range[0]+xa.range[1])/2, xr=(xa.range[1]-xa.range[0])*0.7;
     const ym=(ya.range[0]+ya.range[1])/2, yr=(ya.range[1]-ya.range[0])*0.7;
-    Plotly.relayout('graph',{
-      'xaxis.range':[xm-xr, xm+xr],
-      'yaxis.range':[ym-yr, ym+yr],
-    });
+    Plotly.relayout('graph',{'xaxis.range':[xm-xr, xm+xr],'yaxis.range':[ym-yr, ym+yr]});
   }
 }
 
@@ -474,7 +485,7 @@ function toggleMode(){
   if(is3D) return;
   dragMode = dragMode==='pan' ? 'zoom' : 'pan';
   const btn = document.getElementById('mode-btn');
-  btn.textContent = dragMode==='pan' ? '✥ Surish' : '⬚ Zoom';
+  btn.textContent = dragMode==='pan' ? '\u2725 Surish' : '\u2b1c Zoom';
   btn.classList.toggle('active', dragMode==='pan');
   Plotly.relayout('graph',{dragmode: dragMode});
 }
@@ -482,7 +493,7 @@ function toggleMode(){
 function toggleGrid(){
   gridVisible=!gridVisible;
   const btn=document.getElementById('grid-btn');
-  btn.textContent = gridVisible ? 'Grid ✓' : 'Grid';
+  btn.textContent = gridVisible ? 'Grid \u2713' : 'Grid';
   if(is3D){
     Plotly.relayout('graph',{
       'scene.xaxis.showgrid':gridVisible,
@@ -498,7 +509,13 @@ function resetView(){
   if(is3D){
     Plotly.relayout('graph',{'scene.camera':{eye:{x:1.6,y:1.6,z:1.2}}});
   } else {
-    Plotly.relayout('graph',{'xaxis.autorange':true,'yaxis.autorange':true});
+    // Reset to original -10..10 range
+    Plotly.relayout('graph',{
+      'xaxis.range':[AXIS_LO, AXIS_HI],
+      'yaxis.range':[AXIS_LO, AXIS_HI],
+      'xaxis.dtick': 1,
+      'yaxis.dtick': 1,
+    });
   }
 }
 
