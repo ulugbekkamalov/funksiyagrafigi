@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Funksiya Grafigi — Kamalov Ulugbek</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.0/math.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.27.0/plotly.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0f;--panel:#141414;--panel2:#1a1a1a;
+  --border:#252525;--border2:#2e2e2e;
+  --text:#e8e8e8;--muted:#666;--hint:#404040;
+  --accent:#a78bfa;--green:#34d399;
+  --r:10px;--rl:14px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif}
+body{display:flex;flex-direction:column;min-height:100vh}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.5rem;border-bottom:0.5px solid var(--border);background:var(--panel);flex-shrink:0}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);letter-spacing:.02em}
+.topbar-author{font-size:11px;color:var(--muted)}
+
+.main{display:flex;flex:1;min-height:0}
+.left-panel{width:330px;flex-shrink:0;background:var(--panel);border-right:0.5px solid var(--border);display:flex;flex-direction:column;padding:1.1rem;gap:.9rem;overflow-y:auto}
+.right-panel{flex:1;display:flex;flex-direction:column;background:var(--bg);min-width:0}
+@media(max-width:680px){.main{flex-direction:column}.left-panel{width:100%;border-right:none;border-bottom:0.5px solid var(--border)}}
+
+.lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px}
+
+.formula-input{width:100%;padding:9px 12px;font-size:15px;font-family:'Courier New',monospace;background:var(--panel2);border:1.5px solid var(--border2);border-radius:var(--r);color:var(--text);outline:none;transition:border-color .2s}
+.formula-input:focus{border-color:var(--accent)}
+.formula-input::placeholder{color:var(--hint)}
+
+.preview-box{background:var(--panel2);border:0.5px solid var(--border);border-radius:var(--r);padding:10px 14px;min-height:50px;display:flex;align-items:center;justify-content:center;overflow-x:auto}
+.preview-box .katex{color:var(--text);font-size:1.15em}
+.preview-placeholder{font-size:12px;color:var(--hint);font-style:italic}
+
+.quick-btns{display:flex;flex-wrap:wrap;gap:4px}
+.qbtn{font-size:12px;padding:4px 9px;border:0.5px solid var(--border2);border-radius:6px;background:var(--panel2);color:var(--muted);cursor:pointer;font-family:'Courier New',monospace;transition:background .15s,color .15s}
+.qbtn:hover{background:var(--border2);color:var(--text)}
+
+.detect-badge{display:flex;align-items:center;gap:8px;background:var(--panel2);border:0.5px solid var(--border);border-radius:var(--r);padding:8px 12px}
+.detect-dot{width:8px;height:8px;border-radius:50%;background:var(--hint);flex-shrink:0;transition:background .3s}
+.detect-dot.active{background:var(--green)}
+.detect-text{font-size:12px;color:var(--muted)}
+.detect-text strong{color:var(--text);font-weight:500}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.info-card{background:var(--panel2);border:0.5px solid var(--border);border-radius:var(--r);padding:7px 10px}
+.info-card .ic-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}
+.info-card .ic-val{font-size:12px;color:var(--accent);font-family:Georgia,serif}
+
+.err-box{background:#1a0808;border:0.5px solid #5b1a1a;border-radius:var(--r);padding:8px 12px;font-size:12px;color:#f87171;display:none}
+
+.plot-btn{width:100%;padding:10px;font-size:13px;font-weight:600;letter-spacing:.04em;background:var(--accent);color:#0f0f0f;border:none;border-radius:var(--r);cursor:pointer;transition:opacity .15s;margin-top:auto}
+.plot-btn:hover{opacity:.88}
+.plot-btn:active{opacity:.72;transform:scale(.98)}
+
+/* ── Toolbar ── */
+.graph-toolbar{display:flex;align-items:center;justify-content:space-between;padding:.45rem 1rem;border-bottom:0.5px solid var(--border);background:var(--panel);gap:8px;flex-wrap:wrap;flex-shrink:0}
+.graph-info{font-size:12px;color:var(--muted);font-family:Georgia,serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.graph-info span{color:var(--accent)}
+.toolbar-btns{display:flex;gap:4px;flex-shrink:0}
+.tbtn{font-size:11px;padding:4px 11px;border:0.5px solid var(--border2);border-radius:6px;background:var(--panel2);color:var(--muted);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
+.tbtn:hover{background:var(--border2);color:var(--text)}
+.tbtn.active{background:#2a1f3d;color:var(--accent);border-color:#4c3a7a}
+
+/* ── hint strip below toolbar ── */
+.hint-strip{font-size:10px;color:var(--hint);padding:.3rem 1rem;background:var(--panel);border-bottom:0.5px solid var(--border);flex-shrink:0}
+
+#graph{flex:1;min-height:0}
+.graph-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--hint);height:100%;min-height:400px}
+.graph-placeholder p{font-size:13px}
+
+.sep{height:0.5px;background:var(--border);width:100%}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">Funksiya Grafigi</div>
+  <div class="topbar-author">Muallif: Kamalov Ulugbek</div>
+</div>
+
+<div class="main">
+
+  <div class="left-panel">
+    <div>
+      <div class="lbl">Funksiya kiriting</div>
+      <input class="formula-input" id="formula" type="text"
+        placeholder="x^2 + sin(y)  yoki  1/x  ..."
+        autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+
+    <div>
+      <div class="lbl">Ko'rinishi</div>
+      <div class="preview-box" id="preview">
+        <span class="preview-placeholder">formula yozganda bu yerda chiqadi</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="lbl">Tez kiritish</div>
+      <div class="quick-btns">
+        <button class="qbtn" onclick="ins('x^2')">x²</button>
+        <button class="qbtn" onclick="ins('x^3')">x³</button>
+        <button class="qbtn" onclick="ins('sqrt(x)')">√x</button>
+        <button class="qbtn" onclick="ins('sin(x)')">sin</button>
+        <button class="qbtn" onclick="ins('cos(x)')">cos</button>
+        <button class="qbtn" onclick="ins('tan(x)')">tan</button>
+        <button class="qbtn" onclick="ins('log(x)')">log</button>
+        <button class="qbtn" onclick="ins('exp(x)')">eˣ</button>
+        <button class="qbtn" onclick="ins('abs(x)')">|x|</button>
+        <button class="qbtn" onclick="ins('1/x')">1/x</button>
+        <button class="qbtn" onclick="ins('pi')">π</button>
+        <button class="qbtn" onclick="ins('x^2 + y^2')">x²+y²</button>
+        <button class="qbtn" onclick="ins('sin(x)*cos(y)')">sin·cos</button>
+        <button class="qbtn" onclick="ins('x^2 - y^2')">x²−y²</button>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div>
+      <div class="lbl">Avtomatik aniqlash</div>
+      <div class="detect-badge">
+        <div class="detect-dot" id="detect-dot"></div>
+        <div class="detect-text" id="detect-text">formula kiriting...</div>
+      </div>
+    </div>
+
+    <div id="info-section" style="display:none">
+      <div class="lbl">Ma'lumot</div>
+      <div class="info-grid" id="info-grid"></div>
+    </div>
+
+    <div class="err-box" id="err-box"></div>
+    <button class="plot-btn" onclick="plot()">Grafik chizish</button>
+  </div>
+
+  <div class="right-panel">
+    <div class="graph-toolbar" id="graph-toolbar" style="display:none">
+      <div class="graph-info" id="graph-info"></div>
+      <div class="toolbar-btns">
+        <button class="tbtn" onclick="zoomIn()">＋</button>
+        <button class="tbtn" onclick="zoomOut()">－</button>
+        <button class="tbtn active" id="mode-btn" onclick="toggleMode()">✥ Surish</button>
+        <button class="tbtn" onclick="toggleGrid()" id="grid-btn">Grid ✓</button>
+        <button class="tbtn" onclick="resetView()">↺ Reset</button>
+      </div>
+    </div>
+    <div class="hint-strip" id="hint-strip" style="display:none">
+      2D: sichqon g'ildiragi = zoom &nbsp;·&nbsp; bosib suring = harakat &nbsp;·&nbsp; 3D: bosib aylantiring
+    </div>
+    <div id="graph">
+      <div class="graph-placeholder">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <path d="M5 50 L15 30 L25 38 L35 20 L45 28 L55 10" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="5" y1="55" x2="55" y2="55" stroke="#404040" stroke-width="1"/>
+          <line x1="5" y1="5" x2="5" y2="55" stroke="#404040" stroke-width="1"/>
+        </svg>
+        <p>Formula yozing va "Grafik chizish" bosing</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CONSTANTS = new Set(['e','i','pi','phi','tau','Infinity','NaN','true','false','null']);
+const FUNCTIONS = new Set(['sin','cos','tan','asin','acos','atan','atan2','sinh','cosh','tanh',
+  'sqrt','cbrt','exp','log','log2','log10','abs','ceil','floor','round','sign',
+  'min','max','mod','pow','factorial','gamma','beta','erf']);
+
+let gridVisible = true;
+let dragMode = 'pan';
+let is3D = false;
+let currentRange = { xlo:-10, xhi:10, ylo:-10, yhi:10 };
+
+function extractVars(expr){
+  const tokens = math.parse(expr);
+  const vars = new Set();
+  tokens.traverse(node=>{
+    if(node.isSymbolNode && !CONSTANTS.has(node.name) && !FUNCTIONS.has(node.name))
+      vars.add(node.name);
+  });
+  return [...vars].sort();
+}
+
+function toLatex(raw){
+  try{ return math.parse(raw).toTex(); }catch(e){ return raw; }
+}
+
+function computeDomain(expr, vars){
+  const info = {};
+  vars.forEach(v=>{
+    if(expr.includes('sqrt')||expr.includes('log')) info[v]='taqiqlar mavjud';
+    else if(expr.includes('1/'+v)||expr.includes('/'+v)) info[v]='ℝ \\ {0}';
+    else info[v]='(−∞, +∞)';
+  });
+  return info;
+}
+
+document.getElementById('formula').addEventListener('input', function(){
+  const val = this.value.trim();
+  const prev = document.getElementById('preview');
+  const dot  = document.getElementById('detect-dot');
+  const dtxt = document.getElementById('detect-text');
+  document.getElementById('err-box').style.display='none';
+
+  if(!val){
+    prev.innerHTML='<span class="preview-placeholder">formula yozganda bu yerda chiqadi</span>';
+    dot.classList.remove('active'); dtxt.innerHTML='formula kiriting...';
+    document.getElementById('info-section').style.display='none';
+    return;
+  }
+  try{
+    katex.render('f = '+toLatex(val), prev, {throwOnError:false, displayMode:true});
+    const vars = extractVars(val);
+    dot.classList.add('active');
+    if(vars.length===0)      dtxt.innerHTML='<strong>Konstanta</strong>';
+    else if(vars.length===1) dtxt.innerHTML=`<strong>${vars[0]}</strong> — 2D grafik`;
+    else if(vars.length===2) dtxt.innerHTML=`<strong>${vars.join(', ')}</strong> — 3D sirt`;
+    else                     dtxt.innerHTML=`<strong>${vars.join(', ')}</strong> — ${vars.length} o\'zgaruvchi`;
+
+    const dom = computeDomain(val, vars);
+    const ig = document.getElementById('info-grid');
+    ig.innerHTML = vars.map(v=>`
+      <div class="info-card">
+        <div class="ic-lbl">Domen (${v})</div>
+        <div class="ic-val">${v} ∈ ${dom[v]}</div>
+      </div>`).join('');
+    if(vars.length){
+      ig.innerHTML+=`<div class="info-card"><div class="ic-lbl">O'zgaruvchilar</div><div class="ic-val">${vars.length} ta</div></div>`;
+    }
+    document.getElementById('info-section').style.display = vars.length ? 'block':'none';
+  }catch(e){
+    prev.innerHTML='<span class="preview-placeholder">formulada xato</span>';
+    dot.classList.remove('active'); dtxt.innerHTML='formulada xato';
+  }
+});
+
+function ins(txt){
+  const inp = document.getElementById('formula');
+  const s=inp.selectionStart, e=inp.selectionEnd;
+  inp.value = inp.value.slice(0,s)+txt+inp.value.slice(e);
+  inp.selectionStart = inp.selectionEnd = s+txt.length;
+  inp.dispatchEvent(new Event('input'));
+  inp.focus();
+}
+
+/* ── Axis config: clearly visible X and Y axes ── */
+function axisBase(title){
+  return {
+    title:{text: title, font:{color:'#888', size:13}},
+    color:'#666',
+    gridcolor:'#1e1e1e',
+    gridwidth:1,
+    zerolinecolor:'#555',
+    zerolinewidth:2,
+    linecolor:'#444',
+    linewidth:1,
+    showline:true,
+    tickcolor:'#444',
+    tickfont:{color:'#666', size:11},
+    showgrid:true,
+  };
+}
+
+function axis3DBase(title){
+  return {
+    title:{text:title, font:{color:'#777', size:12}},
+    gridcolor:'#222',
+    zerolinecolor:'#444',
+    zerolinewidth:2,
+    color:'#555',
+    tickfont:{color:'#555', size:10},
+    showgrid:true,
+    showline:true,
+    linecolor:'#333',
+  };
+}
+
+const PLOTLY_CONFIG = {
+  responsive:true,
+  scrollZoom:true,
+  displayModeBar:true,
+  modeBarButtonsToRemove:['select2d','lasso2d','autoScale2d'],
+  displaylogo:false,
+  toImageButtonOptions:{format:'png', filename:'grafik', scale:2},
+};
+
+let lastExpr='', lastVars=[], lastLo={}, lastHi={};
+
+function plot(){
+  const raw = document.getElementById('formula').value.trim();
+  const err = document.getElementById('err-box');
+  err.style.display='none';
+  if(!raw){err.textContent='Formula kiriting!';err.style.display='block';return;}
+
+  let vars;
+  try{
+    math.parse(raw);
+    vars = extractVars(raw);
+    lastExpr=raw; lastVars=vars;
+  }catch(e){
+    err.textContent='Formulada xato: '+e.message;
+    err.style.display='block';
+    return;
+  }
+
+  document.getElementById('graph-toolbar').style.display='flex';
+  document.getElementById('hint-strip').style.display='block';
+  document.getElementById('graph-info').innerHTML =
+    `<span>f = ${raw}</span>&nbsp;·&nbsp;${vars.length===0?'konstanta':vars.join(', ')} o'zgaruvchi`;
+
+  if(vars.length<=1){ is3D=false; plot2D(raw, vars.length?vars:['x']); }
+  else              { is3D=true;  plot3D(raw, vars); }
+
+  document.getElementById('mode-btn').textContent = is3D ? '↻ Aylantirish' : '✥ Surish';
+}
+
+function smartRange(expr, v){
+  let lo=-10, hi=10;
+  if(expr.includes('sqrt')||expr.includes('log')) lo=0.001;
+  if(expr.includes('1/'+v)||expr.includes('/'+v)){ lo=0.3; hi=10; }
+  if(expr.includes('tan')) { lo=-1.4; hi=1.4; }
+  lastLo[v]=lo; lastHi[v]=hi;
+  return {lo,hi};
+}
+
+function plot2D(expr, vars){
+  const v = vars[0]||'x';
+  const {lo,hi} = smartRange(expr,v);
+  currentRange = {xlo:lo, xhi:hi, ylo:null, yhi:null};
+  const N=800;
+  const xs=[], ys=[];
+  const step=(hi-lo)/(N-1);
+  for(let i=0;i<N;i++){
+    const xv=lo+i*step;
+    try{
+      const scope={}; vars.forEach(u=>scope[u]=0); scope[v]=xv;
+      const yv=math.evaluate(expr,scope);
+      xs.push(xv);
+      ys.push(typeof yv==='number'&&isFinite(yv)?yv:null);
+    }catch(e){ xs.push(xv); ys.push(null); }
+  }
+
+  const layout={
+    paper_bgcolor:'#0a0a0a',
+    plot_bgcolor:'#0a0a0a',
+    font:{color:'#888', family:'Segoe UI,system-ui,sans-serif', size:11},
+    margin:{l:55,r:25,t:28,b:55},
+    dragmode: dragMode,
+    xaxis: axisBase(v),
+    yaxis: axisBase('f('+v+')'),
+    shapes:[
+      {type:'line',x0:lo,x1:hi,y0:0,y1:0,line:{color:'#444',width:1.5}},
+    ],
+    hovermode:'x unified',
+    hoverlabel:{bgcolor:'#1a1a1a',bordercolor:'#333',font:{color:'#ccc',size:12}},
+  };
+
+  const trace={
+    x:xs, y:ys,
+    mode:'lines',
+    line:{color:'#a78bfa', width:2.5},
+    connectgaps:false,
+    hovertemplate:`${v}: %{x:.4f}<br>f: %{y:.4f}<extra></extra>`,
+  };
+
+  Plotly.react('graph',[trace], layout, PLOTLY_CONFIG);
+}
+
+function plot3D(expr, vars){
+  const v1=vars[0], v2=vars[1];
+  const r1=smartRange(expr,v1), r2=smartRange(expr,v2);
+  const N=70;
+  const xs=linspace(r1.lo,r1.hi,N);
+  const ys=linspace(r2.lo,r2.hi,N);
+  const zs=[];
+  for(let j=0;j<N;j++){
+    const row=[];
+    for(let i=0;i<N;i++){
+      try{
+        const scope={}; vars.forEach(u=>scope[u]=0);
+        scope[v1]=xs[i]; scope[v2]=ys[j];
+        const z=math.evaluate(expr,scope);
+        row.push(typeof z==='number'&&isFinite(z)?z:null);
+      }catch(e){ row.push(null); }
+    }
+    zs.push(row);
+  }
+
+  const layout={
+    paper_bgcolor:'#0a0a0a',
+    scene:{
+      bgcolor:'#0a0a0a',
+      xaxis: axis3DBase(v1),
+      yaxis: axis3DBase(v2),
+      zaxis: axis3DBase('f'),
+      camera:{eye:{x:1.6,y:1.6,z:1.2}},
+      aspectmode:'auto',
+    },
+    font:{color:'#888', family:'Segoe UI,system-ui,sans-serif', size:11},
+    margin:{l:0,r:0,t:28,b:0},
+  };
+
+  const trace={
+    type:'surface', x:xs, y:ys, z:zs,
+    colorscale:[[0,'#10b981'],[0.25,'#0891b2'],[0.5,'#2563eb'],[0.75,'#7c3aed'],[1,'#c4b5fd']],
+    contours:{z:{show:true,color:'rgba(255,255,255,0.3)',width:1,highlight:true}},
+    hovertemplate:`${v1}: %{x:.3f}<br>${v2}: %{y:.3f}<br>z: %{z:.3f}<extra></extra>`,
+    lighting:{ambient:0.7,diffuse:0.6,specular:0.3,roughness:0.5},
+    showscale:true,
+    colorbar:{tickfont:{color:'#555'},title:{text:'z',font:{color:'#666'}}},
+  };
+
+  Plotly.react('graph',[trace], layout, PLOTLY_CONFIG);
+}
+
+function linspace(a,b,n){
+  const arr=[], step=(b-a)/(n-1);
+  for(let i=0;i<n;i++) arr.push(+(a+i*step).toFixed(8));
+  return arr;
+}
+
+/* ── Controls ── */
+function zoomIn(){
+  if(is3D){
+    const el=document.getElementById('graph');
+    if(!el._fullLayout) return;
+    const cam=el._fullLayout.scene.camera;
+    const f=0.75;
+    Plotly.relayout('graph',{'scene.camera.eye':{x:cam.eye.x*f,y:cam.eye.y*f,z:cam.eye.z*f}});
+  } else {
+    const el=document.getElementById('graph');
+    if(!el._fullLayout) return;
+    const xa=el._fullLayout.xaxis, ya=el._fullLayout.yaxis;
+    const xm=(xa.range[0]+xa.range[1])/2, xr=(xa.range[1]-xa.range[0])*0.35;
+    const ym=(ya.range[0]+ya.range[1])/2, yr=(ya.range[1]-ya.range[0])*0.35;
+    Plotly.relayout('graph',{
+      'xaxis.range':[xm-xr, xm+xr],
+      'yaxis.range':[ym-yr, ym+yr],
+    });
+  }
+}
+
+function zoomOut(){
+  if(is3D){
+    const el=document.getElementById('graph');
+    if(!el._fullLayout) return;
+    const cam=el._fullLayout.scene.camera;
+    const f=1.35;
+    Plotly.relayout('graph',{'scene.camera.eye':{x:cam.eye.x*f,y:cam.eye.y*f,z:cam.eye.z*f}});
+  } else {
+    const el=document.getElementById('graph');
+    if(!el._fullLayout) return;
+    const xa=el._fullLayout.xaxis, ya=el._fullLayout.yaxis;
+    const xm=(xa.range[0]+xa.range[1])/2, xr=(xa.range[1]-xa.range[0])*0.7;
+    const ym=(ya.range[0]+ya.range[1])/2, yr=(ya.range[1]-ya.range[0])*0.7;
+    Plotly.relayout('graph',{
+      'xaxis.range':[xm-xr, xm+xr],
+      'yaxis.range':[ym-yr, ym+yr],
+    });
+  }
+}
+
+function toggleMode(){
+  if(is3D) return;
+  dragMode = dragMode==='pan' ? 'zoom' : 'pan';
+  const btn = document.getElementById('mode-btn');
+  btn.textContent = dragMode==='pan' ? '✥ Surish' : '⬚ Zoom';
+  btn.classList.toggle('active', dragMode==='pan');
+  Plotly.relayout('graph',{dragmode: dragMode});
+}
+
+function toggleGrid(){
+  gridVisible=!gridVisible;
+  const btn=document.getElementById('grid-btn');
+  btn.textContent = gridVisible ? 'Grid ✓' : 'Grid';
+  if(is3D){
+    Plotly.relayout('graph',{
+      'scene.xaxis.showgrid':gridVisible,
+      'scene.yaxis.showgrid':gridVisible,
+      'scene.zaxis.showgrid':gridVisible,
+    });
+  } else {
+    Plotly.relayout('graph',{'xaxis.showgrid':gridVisible,'yaxis.showgrid':gridVisible});
+  }
+}
+
+function resetView(){
+  if(is3D){
+    Plotly.relayout('graph',{'scene.camera':{eye:{x:1.6,y:1.6,z:1.2}}});
+  } else {
+    Plotly.relayout('graph',{'xaxis.autorange':true,'yaxis.autorange':true});
+  }
+}
+
+document.getElementById('formula').addEventListener('keydown',e=>{
+  if(e.key==='Enter') plot();
+});
+</script>
+</body>
+</html>
