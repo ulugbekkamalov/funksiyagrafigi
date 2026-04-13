@@ -17,7 +17,7 @@
   --accent:#818cf8;--accent2:#c4b5fd;
   --green:#34d399;--red:#f87171;--yellow:#facc15;
 }
-/* ── CHANGED: overflow hidden → auto so mobile can scroll ── */
+/* FIX 1: overflow:hidden → overflow:auto for mobile scroll */
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;overflow:auto}
 body{display:flex;flex-direction:column}
 
@@ -125,13 +125,24 @@ body{display:flex;flex-direction:column}
 .solchips{display:flex;flex-wrap:wrap;gap:4px}
 .solchip{background:#1a1100;border:1px solid #5a3e00;border-radius:5px;padding:2px 9px;color:var(--yellow);font-family:"Courier New",monospace;font-size:11px}
 
-/* ── CHANGED: min-height 0 → 400px so mobile shows the graph ── */
+/* FIX 2: min-height:0 → min-height:400px so graph is visible on mobile */
 #gouter{flex:1;position:relative;min-height:400px;overflow:hidden}
 #graph{position:absolute;inset:0}
 .emptyhint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);pointer-events:none}
 .emptyhint svg{opacity:.18}
 .emptyhint p{font-size:13px}
 .emptyhint small{font-size:11px;color:var(--hint)}
+
+/* FIX 3: mobile layout — stack vertically, ensure right panel has enough height */
+@media(max-width:700px){
+  body{overflow:auto}
+  .main{flex-direction:column;min-height:0}
+  .left{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--border);max-height:60vh;overflow-y:auto}
+  .right{min-height:500px}
+  #gouter{min-height:450px}
+  .topbar{flex-wrap:wrap;height:auto;padding:8px 12px;gap:6px}
+  .gbar{flex-wrap:wrap;height:auto;padding:6px 10px}
+}
 
 /* GUIDE MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:600;display:none;align-items:flex-start;justify-content:center;padding:20px 14px;backdrop-filter:blur(5px);overflow-y:auto}
@@ -169,17 +180,6 @@ body{display:flex;flex-direction:column}
 .gtable td:first-child{font-family:"Courier New",monospace;color:var(--accent2);white-space:nowrap;width:160px}
 .gtable td:nth-child(2){color:#aaa}
 .gtable td:last-child{color:var(--muted);font-size:10.5px;width:140px}
-
-/* ── CHANGED: mobile layout — stack vertically, graph gets fixed height ── */
-@media(max-width:680px){
-  html,body{overflow:auto}
-  body{display:block}
-  .main{display:flex;flex-direction:column}
-  .left{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:60vh;overflow-y:auto}
-  .right{min-height:500px;display:flex;flex-direction:column}
-  #gouter{flex:1;min-height:420px;position:relative;overflow:hidden}
-  #graph{position:absolute;inset:0}
-}
 </style>
 </head>
 <body>
@@ -553,12 +553,18 @@ function CR(){
          y0:Math.max(d.y0-yw*4,-100),y1:Math.min(d.y1+yw*4,100)};
 }
 
+// ════════════════════════════════════════════════════════
+//  NORMALIZE
+// ════════════════════════════════════════════════════════
 function norm(s){
   return s
     .replace(/π/g,'pi')
     .replace(/(\d)([a-zA-Z(])/g,function(m,d,c){return d+'*'+c;});
 }
 
+// ════════════════════════════════════════════════════════
+//  EXTRACT VARIABLES
+// ════════════════════════════════════════════════════════
 function evars(expr){
   var v={};
   try{math.parse(expr).traverse(function(n){
@@ -567,8 +573,12 @@ function evars(expr){
   return Object.keys(v).sort();
 }
 
+// ════════════════════════════════════════════════════════
+//  PARSE EXPRESSION
+// ════════════════════════════════════════════════════════
 function parse(raw){
   var s=raw.trim(); if(!s) return null;
+
   var im=s.match(/^(.*?)(>=|<=|>|<)(.+)$/);
   if(im){
     var lR=im[1].trim(), op=im[2], rR=im[3].trim();
@@ -576,6 +586,7 @@ function parse(raw){
     var lN=norm(lR), rN=norm(rR), diff='('+lN+')-('+rN+')';
     return{type:'ineq', lRaw:lR, rRaw:rR, lN:lN, rN:rN, diff:diff, op:op, vars:evars(diff)};
   }
+
   var ei=s.indexOf('=');
   if(ei>0){
     var lE=s.slice(0,ei).trim(), rE=s.slice(ei+1).trim();
@@ -589,12 +600,16 @@ function parse(raw){
       return{type:'impl', lRaw:lE, rRaw:rE, lN:lEN, rN:rEN, diff:diffE, vars:varsE};
     }
   }
+
   var nP=norm(s), vP=evars(nP);
   if((vP.includes('x')&&vP.includes('y'))||vP.includes('z'))
     return{type:'surf', rawRhs:s, exprN:nP, vars:vP};
   return{type:'expl', rawRhs:s, exprN:nP, vars:vP};
 }
 
+// ════════════════════════════════════════════════════════
+//  PARSE CONDITIONS
+// ════════════════════════════════════════════════════════
 function parseCond(str){
   if(!str||!str.trim()) return null;
   var segs=str.trim().split(/&&|,|\band\b/i).map(function(x){return x.trim();}).filter(Boolean);
@@ -626,6 +641,9 @@ function testC(conds,xv,yv){
   return true;
 }
 
+// ════════════════════════════════════════════════════════
+//  LATEX PREVIEW
+// ════════════════════════════════════════════════════════
 function opLtx(op){return{'>':'>','<':'<','>=':'\\geq','<=':'\\leq'}[op]||op;}
 function toLtx(rawStr){
   try{return math.parse(rawStr).toTex();}catch(e){return rawStr;}
@@ -641,6 +659,9 @@ function buildLtx(p,raw){
   return raw;
 }
 
+// ════════════════════════════════════════════════════════
+//  EQUATION MANAGEMENT
+// ════════════════════════════════════════════════════════
 function addEq(expr,color,cond){
   var id=NID++;
   var c=color||COLORS[EQS.length%COLORS.length];
@@ -661,6 +682,9 @@ function focusEq(id){
 }
 function sched(){clearTimeout(PTM);PTM=setTimeout(plotAll,380);}
 
+// ════════════════════════════════════════════════════════
+//  RENDER EQUATION LIST
+// ════════════════════════════════════════════════════════
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function renderList(){
@@ -705,6 +729,9 @@ function renderList(){
   });
 }
 
+// ════════════════════════════════════════════════════════
+//  META BADGE + KATEX PREVIEW
+// ════════════════════════════════════════════════════════
 var PVT={};
 function refreshMeta(id,raw){
   var mEl=document.getElementById('meta'+id); if(!mEl) return;
@@ -717,6 +744,7 @@ function refreshMeta(id,raw){
   else if(p.type==='impl'){cls+='b-im';txt='Implicit egri';}
   else{cls+='b-fn';txt='y = f(x)';}
   mEl.className=cls; mEl.textContent=txt;
+
   clearTimeout(PVT[id]);
   PVT[id]=setTimeout(function(){
     var pEl=document.getElementById('prev'+id); if(!pEl) return;
@@ -727,10 +755,16 @@ function refreshMeta(id,raw){
   },160);
 }
 
+// ════════════════════════════════════════════════════════
+//  INPUT HANDLERS
+// ════════════════════════════════════════════════════════
 function onExpr(id,val){var eq=getEq(id);if(!eq)return;eq.expr=val;refreshMeta(id,val);sched();}
 function onCond(id,val){var eq=getEq(id);if(!eq)return;eq.cond=val;sched();}
 function onKD(e){if(e.key==='Enter'){e.preventDefault();clearTimeout(PTM);plotAll();}}
 
+// ════════════════════════════════════════════════════════
+//  PLOT ORCHESTRATOR
+// ════════════════════════════════════════════════════════
 function plotAll(){
   clearTimeout(PTM);
   var vis=EQS.filter(function(e){return e.visible&&e.expr.trim();});
@@ -741,6 +775,9 @@ function plotAll(){
   if(has3D) do3D(items); else do2D(items);
 }
 
+// ════════════════════════════════════════════════════════
+//  2D PLOTTING
+// ════════════════════════════════════════════════════════
 function do2D(items){
   IS3D=false;
   var dr=DR(), cr=CR();
@@ -950,6 +987,9 @@ function crosses(items,x0,x1){
   return pts.slice(0,30);
 }
 
+// ════════════════════════════════════════════════════════
+//  3D PLOTTING
+// ════════════════════════════════════════════════════════
 function do3D(items){
   IS3D=true;
   var dr=DR(), N=65;
@@ -978,6 +1018,9 @@ function do3D(items){
   document.getElementById('ginfo').innerHTML='<b>3D</b>';
 }
 
+// ════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════
 function buildZ(diff,vx,vy,xs,ys){
   var N=xs.length, f;
   try{f=math.compile(diff);}catch(e){
@@ -1008,6 +1051,9 @@ function h2r(hex,a){
 }
 function resizePlot(){setTimeout(function(){try{Plotly.Plots.resize(document.getElementById('graph'));}catch(e){}},60);}
 
+// ════════════════════════════════════════════════════════
+//  LAYOUTS
+// ════════════════════════════════════════════════════════
 function dtick(span){return span>80?20:span>40?10:span>20?5:span>10?2:1;}
 function lay2D(dr){
   var gc=GRIDON?'#1c1c1c':'transparent';
@@ -1053,6 +1099,9 @@ function lay3D(dr){
 function pcfg(){return{responsive:true,scrollZoom:true,displayModeBar:true,
   modeBarButtonsToRemove:['select2d','lasso2d'],displaylogo:false};}
 
+// ════════════════════════════════════════════════════════
+//  TOOLBAR ACTIONS
+// ════════════════════════════════════════════════════════
 function doZoom(f){
   var el=document.getElementById('graph');
   try{
@@ -1115,6 +1164,9 @@ function showSols(pts){
 }
 function hideSols(){document.getElementById('solbar').style.display='none';}
 
+// ════════════════════════════════════════════════════════
+//  KEYBOARD
+// ════════════════════════════════════════════════════════
 var KB=[
   [{l:'x',v:'x'},{l:'y',v:'y'},{l:'z',v:'z'},{l:'(',v:'('},{l:')',v:')'},
    {l:'+',v:'+'},{l:'−',v:'-',c:'op'},{l:'×',v:'*',c:'op'},{l:'÷',v:'/',c:'op'},{l:'=',v:'='},{l:'^',v:'^'}],
@@ -1160,25 +1212,37 @@ function insKey(val){
   if(KBFIELD==='cond') onCond(id,sel.value); else onExpr(id,sel.value);
 }
 
+// ════════════════════════════════════════════════════════
+//  GUIDE MODAL
+// ════════════════════════════════════════════════════════
 function openGuide(){document.getElementById('guideModal').classList.add('open');}
 function closeGuide(){document.getElementById('guideModal').classList.remove('open');}
+
 function gL(expr){closeGuide();addEq(expr);}
 function gL1(expr,cond){closeGuide();addEq(expr,undefined,cond);}
 function gL2(exprs){closeGuide();exprs.forEach(function(ex){addEq(ex);});}
 function gL3(exprs){closeGuide();exprs.forEach(function(ex){addEq(ex);});}
+
 function toggleSec(hid,bid){
   document.getElementById(hid).classList.toggle('open');
   document.getElementById(bid).classList.toggle('open');
 }
 
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function(){
+
   document.getElementById('btnClear').onclick = clearAll;
   document.getElementById('btnPlot').onclick  = function(){clearTimeout(PTM);plotAll();};
   document.getElementById('btnGuide').onclick = openGuide;
+
   document.getElementById('btnGClose').onclick = closeGuide;
   document.getElementById('guideModal').onclick = function(e){if(e.target===this)closeGuide();};
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeGuide();});
+
   document.getElementById('btnAdd').onclick = function(){addEq();};
+
   document.getElementById('btnZI').onclick   = function(){doZoom(.7);};
   document.getElementById('btnZO').onclick   = function(){doZoom(1.4);};
   document.getElementById('btnPan').onclick  = toggleDrag;
@@ -1188,24 +1252,31 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('btnPNG').onclick  = function(){
     Plotly.downloadImage('graph',{format:'png',width:1800,height:1400,filename:'grafik',scale:2});
   };
+
   document.getElementById('hdrR').onclick = function(){toggleSec('hdrR','bodyR');};
+
   document.getElementById('btnAuto').onclick = function(){
     ['xmin','xmax','ymin','ymax'].forEach(function(id,i){
       document.getElementById(id).value=['-10','10','-10','10'][i];
     });
     sched();
   };
+
   ['xmin','xmax','ymin','ymax','zmin','zmax'].forEach(function(id){
     document.getElementById(id).addEventListener('change',sched);
   });
+
   if(window.ResizeObserver){
     new ResizeObserver(function(){
       if(document.getElementById('ehint').style.display==='none') resizePlot();
     }).observe(document.getElementById('gouter'));
   }
+
   buildKB();
+
   addEq('y=sin(x)', COLORS[0]);
   addEq('x^2+y^2=9', COLORS[1]);
+
   setTimeout(function(){clearTimeout(PTM);plotAll();}, 300);
 });
 </script>
