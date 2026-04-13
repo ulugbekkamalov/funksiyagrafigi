@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Funksiya Grafigi — Kamalov Ulugbek</title>
+<title>Matematik Grafik Muharriri</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.0/math.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.27.0/plotly.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
@@ -11,516 +11,1296 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0f0f0f;--panel:#141414;--panel2:#1a1a1a;
-  --border:#252525;--border2:#2e2e2e;
-  --text:#e8e8e8;--muted:#666;--hint:#404040;
-  --accent:#a78bfa;--green:#34d399;
-  --r:10px;--rl:14px;
+  --bg:#0d0d0d;--panel:#141414;--panel2:#1b1b1b;
+  --border:#282828;--border2:#333;
+  --text:#e8e8e8;--muted:#777;--hint:#222;
+  --accent:#818cf8;--accent2:#c4b5fd;
+  --green:#34d399;--red:#f87171;--yellow:#facc15;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif}
-body{display:flex;flex-direction:column;min-height:100vh}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;overflow:hidden}
+body{display:flex;flex-direction:column}
 
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.5rem;border-bottom:0.5px solid var(--border);background:var(--panel);flex-shrink:0}
-.topbar-title{font-size:14px;font-weight:600;color:var(--text);letter-spacing:.02em}
-.topbar-author{font-size:11px;color:var(--muted)}
+/* TOPBAR */
+.topbar{height:46px;min-height:46px;display:flex;align-items:center;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--border);gap:8px;flex-shrink:0}
+.logo{font-size:15px;font-weight:700;color:var(--accent2);user-select:none}.logo em{color:var(--yellow);font-style:normal}
+.spacer{flex:1}
+.tbtn{padding:5px 13px;border:1px solid var(--border2);border-radius:6px;background:var(--panel2);color:var(--muted);cursor:pointer;font-size:11px;white-space:nowrap;transition:all .15s;font-family:inherit}
+.tbtn:hover{border-color:var(--accent);color:var(--accent2)}
+.tbtn.pri{background:linear-gradient(135deg,#4338ca,#7c3aed);border-color:#7c3aed;color:#fff}
+.tbtn.pri:hover{opacity:.85}
+.pill{font-size:10px;padding:3px 10px;border-radius:10px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);white-space:nowrap;font-family:"Courier New",monospace;flex-shrink:0}
+.pill.ok{color:var(--green);border-color:#134e3640}
+.pill.busy{color:var(--yellow);border-color:#4e4a1340}
+.pill.err{color:var(--red)}
 
+/* MAIN */
 .main{display:flex;flex:1;min-height:0}
-.left-panel{width:330px;flex-shrink:0;background:var(--panel);border-right:0.5px solid var(--border);display:flex;flex-direction:column;padding:1.1rem;gap:.9rem;overflow-y:auto}
-.right-panel{flex:1;display:flex;flex-direction:column;background:var(--bg);min-width:0}
-@media(max-width:680px){.main{flex-direction:column}.left-panel{width:100%;border-right:none;border-bottom:0.5px solid var(--border)}}
 
-.lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px}
+/* LEFT */
+.left{width:340px;min-width:240px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.eqscroll{flex:1;overflow-y:auto;padding:6px 0;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.eqscroll::-webkit-scrollbar{width:4px}
+.eqscroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 
-.formula-input{width:100%;padding:9px 12px;font-size:15px;font-family:'Courier New',monospace;background:var(--panel2);border:1.5px solid var(--border2);border-radius:var(--r);color:var(--text);outline:none;transition:border-color .2s}
-.formula-input:focus{border-color:var(--accent)}
-.formula-input::placeholder{color:var(--hint)}
+/* EQ ROW */
+.eqrow{display:flex;align-items:flex-start;gap:5px;padding:6px 9px 6px 7px;border-left:3px solid transparent;transition:background .1s}
+.eqrow:hover{background:rgba(255,255,255,.015)}
+.eqrow.focused{border-left-color:var(--accent);background:rgba(129,140,248,.04)}
+.eqrow.hidden{opacity:.35}
 
-.preview-box{background:var(--panel2);border:0.5px solid var(--border);border-radius:var(--r);padding:10px 14px;min-height:50px;display:flex;align-items:center;justify-content:center;overflow-x:auto}
-.preview-box .katex{color:var(--text);font-size:1.15em}
-.preview-placeholder{font-size:12px;color:var(--hint);font-style:italic}
+.dotbox{position:relative;margin-top:9px;flex-shrink:0}
+.dot{width:14px;height:14px;border-radius:50%;border:2.5px solid currentColor;background:transparent;cursor:pointer;transition:transform .15s}
+.dot:hover{transform:scale(1.25)}
+.clrinp{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
 
-.quick-btns{display:flex;flex-wrap:wrap;gap:4px}
-.qbtn{font-size:12px;padding:4px 9px;border:0.5px solid var(--border2);border-radius:6px;background:var(--panel2);color:var(--muted);cursor:pointer;font-family:'Courier New',monospace;transition:background .15s,color .15s}
-.qbtn:hover{background:var(--border2);color:var(--text)}
+.ebody{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.exin{width:100%;background:var(--panel2);border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:"Courier New",monospace;font-size:13px;padding:7px 10px;outline:none;transition:border-color .15s,box-shadow .15s;caret-color:var(--accent2)}
+.exin:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(129,140,248,.1)}
 
-.detect-badge{display:flex;align-items:center;gap:8px;background:var(--panel2);border:0.5px solid var(--border);border-radius:var(--r);padding:8px 12px}
-.detect-dot{width:8px;height:8px;border-radius:50%;background:var(--hint);flex-shrink:0;transition:background .3s}
-.detect-dot.active{background:var(--green)}
-.detect-text{font-size:12px;color:var(--muted)}
-.detect-text strong{color:var(--text);font-weight:500}
+.condrow{display:flex;align-items:center;gap:4px}
+.condlbl{font-size:9.5px;color:#facc1540;font-family:"Courier New",monospace;white-space:nowrap}
+.condin{flex:1;background:#0a0800;border:1px solid #2e2900;border-radius:5px;color:#facc15;font-family:"Courier New",monospace;font-size:11px;padding:4px 7px;outline:none;transition:border-color .15s}
+.condin:focus{border-color:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.07)}
+.condin::placeholder{color:#1e1900;font-style:italic}
 
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.info-card{background:var(--panel2);border:0.5px solid var(--border);border-radius:var(--r);padding:7px 10px}
-.info-card .ic-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}
-.info-card .ic-val{font-size:12px;color:var(--accent);font-family:Georgia,serif}
+.badge{display:inline-block;font-size:9px;padding:1px 7px;border-radius:9px;border:1px solid;font-family:"Courier New",monospace}
+.b-fn{color:#818cf8;border-color:#3730a330}
+.b-im{color:#34d399;border-color:#06573430}
+.b-iq{color:#fb923c;border-color:#7c2d1230}
+.b-3d{color:#22d3ee;border-color:#0e4e5830}
 
-.err-box{background:#1a0808;border:0.5px solid #5b1a1a;border-radius:var(--r);padding:8px 12px;font-size:12px;color:#f87171;display:none}
+.preview{padding:2px 3px;font-size:11px;color:var(--muted);min-height:20px;overflow:hidden}
+.preview .katex{font-size:.9em!important}
 
-.plot-btn{width:100%;padding:10px;font-size:13px;font-weight:600;letter-spacing:.04em;background:var(--accent);color:#0f0f0f;border:none;border-radius:var(--r);cursor:pointer;transition:opacity .15s;margin-top:auto}
-.plot-btn:hover{opacity:.88}
-.plot-btn:active{opacity:.72;transform:scale(.98)}
+.visbtn{background:none;border:none;cursor:pointer;font-size:12px;color:var(--hint);padding:3px;border-radius:4px;margin-top:8px;flex-shrink:0;transition:color .12s;font-family:inherit}
+.visbtn:hover{color:var(--muted)}
+.delbtn{background:none;border:none;cursor:pointer;font-size:14px;color:var(--hint);padding:3px 4px;border-radius:4px;margin-top:7px;flex-shrink:0;transition:color .12s,background .12s;font-family:inherit}
+.delbtn:hover{color:var(--red);background:rgba(248,113,113,.1)}
 
-.graph-toolbar{display:flex;align-items:center;justify-content:space-between;padding:.45rem 1rem;border-bottom:0.5px solid var(--border);background:var(--panel);gap:8px;flex-wrap:wrap;flex-shrink:0}
-.graph-info{font-size:12px;color:var(--muted);font-family:Georgia,serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.graph-info span{color:var(--accent)}
-.toolbar-btns{display:flex;gap:4px;flex-shrink:0}
-.tbtn{font-size:11px;padding:4px 11px;border:0.5px solid var(--border2);border-radius:6px;background:var(--panel2);color:var(--muted);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
-.tbtn:hover{background:var(--border2);color:var(--text)}
-.tbtn.active{background:#2a1f3d;color:var(--accent);border-color:#4c3a7a}
+.addbtn{margin:5px 10px 2px;padding:8px;border:1px dashed var(--border2);border-radius:7px;background:transparent;color:var(--muted);cursor:pointer;font-size:12px;text-align:center;transition:all .15s;font-family:inherit}
+.addbtn:hover{border-color:var(--accent);color:var(--accent2)}
 
-.hint-strip{font-size:10px;color:var(--hint);padding:.3rem 1rem;background:var(--panel);border-bottom:0.5px solid var(--border);flex-shrink:0}
+/* SECTION */
+.sechdr{display:flex;align-items:center;padding:7px 12px 5px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);cursor:pointer;user-select:none;border-top:1px solid var(--border);transition:color .12s;font-family:inherit}
+.sechdr::after{content:"▾";margin-left:auto;font-size:11px;transition:transform .2s}
+.sechdr.open::after{transform:rotate(180deg)}
+.secbody{display:none;padding:2px 10px 10px}
+.secbody.open{display:block}
 
-#graph{flex:1;min-height:0}
-.graph-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--hint);height:100%;min-height:400px}
-.graph-placeholder p{font-size:13px}
+/* RANGES */
+.rgrid{display:grid;grid-template-columns:16px 1fr auto 1fr;gap:4px 6px;align-items:center;padding:4px 0}
+.rlbl{font-family:"Courier New",monospace;font-size:12px}
+.rinp{background:var(--panel2);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:"Courier New",monospace;font-size:12px;padding:5px 7px;outline:none;width:100%}
+.rinp:focus{border-color:var(--accent)}
+.rsep{font-size:11px;color:var(--muted);text-align:center}
+.autobtn{display:block;width:100%;margin-top:5px;padding:6px;background:var(--panel2);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s;font-family:inherit}
+.autobtn:hover{border-color:var(--accent);color:var(--accent2)}
 
-.sep{height:0.5px;background:var(--border);width:100%}
+/* KEYBOARD */
+.kbwrap{padding:5px 8px 9px;border-top:1px solid var(--border);flex-shrink:0}
+.kbhdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px}
+.kbrows{display:flex;flex-direction:column;gap:2px}
+.kbrow{display:flex;gap:2px}
+.kbtn{flex:1;min-width:0;padding:5px 1px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:5px;cursor:pointer;font-size:10.5px;text-align:center;font-family:"Courier New",monospace;transition:background .1s,color .1s;user-select:none;line-height:1.2}
+.kbtn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.kbtn:active{transform:scale(.92)}
+.kbtn.fn{color:#818cf8}.kbtn.ac{color:var(--accent2)}.kbtn.op{color:var(--yellow)}
+
+/* RIGHT */
+.right{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+.gbar{height:38px;min-height:38px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:5px;flex-shrink:0}
+.gbtn{padding:4px 10px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);border-radius:5px;cursor:pointer;font-size:11px;white-space:nowrap;transition:all .1s;font-family:inherit}
+.gbtn:hover{border-color:var(--accent);color:var(--text)}
+.gbtn.on{background:#1e1930;border-color:#4c3a7a;color:var(--accent2)}
+.ginfo{font-size:10px;color:var(--muted);font-family:"Courier New",monospace;margin-left:auto;white-space:nowrap;overflow:hidden}
+.ginfo b{color:var(--accent2)}
+
+.axrow{height:26px;min-height:26px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:14px;flex-shrink:0}
+.axtag{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
+.axline{width:20px;height:2.5px;border-radius:2px}
+
+.solbar{background:#110b00;border-bottom:1px solid #3a2800;padding:5px 12px;display:none;flex-shrink:0}
+.soltitle{color:var(--yellow);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.solchips{display:flex;flex-wrap:wrap;gap:4px}
+.solchip{background:#1a1100;border:1px solid #5a3e00;border-radius:5px;padding:2px 9px;color:var(--yellow);font-family:"Courier New",monospace;font-size:11px}
+
+#gouter{flex:1;position:relative;min-height:0;overflow:hidden}
+#graph{position:absolute;inset:0}
+.emptyhint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);pointer-events:none}
+.emptyhint svg{opacity:.18}
+.emptyhint p{font-size:13px}
+.emptyhint small{font-size:11px;color:var(--hint)}
+
+/* GUIDE MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:600;display:none;align-items:flex-start;justify-content:center;padding:20px 14px;backdrop-filter:blur(5px);overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:#0f0f0f;border:1px solid #252525;border-radius:14px;width:min(920px,100%);box-shadow:0 24px 80px rgba(0,0,0,.9)}
+.mhdr{display:flex;align-items:center;padding:18px 22px 14px;border-bottom:1px solid #1e1e1e}
+.mtitle{font-size:16px;font-weight:700;color:var(--accent2);flex:1}
+.mclose{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:2px 6px;border-radius:5px;line-height:1;transition:color .12s;font-family:inherit}
+.mclose:hover{color:var(--red)}
+.mbody{padding:20px 22px 30px}
+
+.gintro{background:#12122a;border:1px solid #22226a;border-radius:10px;padding:14px 18px;margin-bottom:18px;font-size:12.5px;line-height:1.85;color:#a8aabb}
+.gintro strong{color:var(--accent2)}
+.gintro code{background:#1e1e40;border-radius:3px;padding:1px 5px;font-family:"Courier New",monospace;color:#c4b5fd;font-size:12px}
+
+.gsec{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:18px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin-bottom:4px}
+.gcard{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;overflow:hidden}
+.gcard:hover{border-color:#444}
+.gtop{display:flex}
+.gsvg{flex-shrink:0}
+.ginfo{padding:11px 13px;flex:1;min-width:0}
+.gtitle{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.gdesc{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:5px}
+.gex{background:#0d0d0d;border:1px solid var(--border);border-radius:5px;padding:4px 9px;font-family:"Courier New",monospace;font-size:11px;color:var(--accent2);cursor:pointer;transition:background .1s;margin-top:3px;display:block}
+.gex:hover{background:#1a1040;border-color:var(--accent)}
+.gex::before{content:"▶ ";color:var(--muted);font-size:8px}
+.gex.yel{background:#0e0900;border-color:#2e2400;color:#facc15}
+.gex.yel:hover{background:#1c1400}
+
+.gtable{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px;border-radius:8px;overflow:hidden}
+.gtable th{text-align:left;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:7px 12px;background:var(--panel2);border-bottom:1px solid var(--border)}
+.gtable td{padding:7px 12px;border-bottom:1px solid var(--hint);vertical-align:top}
+.gtable tr:last-child td{border-bottom:none}
+.gtable td:first-child{font-family:"Courier New",monospace;color:var(--accent2);white-space:nowrap;width:160px}
+.gtable td:nth-child(2){color:#aaa}
+.gtable td:last-child{color:var(--muted);font-size:10.5px;width:140px}
 </style>
 </head>
 <body>
 
+<!-- TOPBAR -->
 <div class="topbar">
-  <div class="topbar-title">Funksiya Grafigi</div>
-  <div class="topbar-author">Muallif: Kamalov Ulugbek</div>
+  <div class="logo">∫ <em>GRAPHER</em></div>
+  <div class="spacer"></div>
+  <button class="tbtn" id="btnClear">↺ Tozalash</button>
+  <button class="tbtn" id="btnPlot">⟳ Chizish</button>
+  <button class="tbtn pri" id="btnGuide">📖 Yo'riqnoma</button>
+  <div class="pill ok" id="pill">Tayyor</div>
 </div>
 
+<!-- MAIN -->
 <div class="main">
-  <div class="left-panel">
-    <div>
-      <div class="lbl">Funksiya kiriting</div>
-      <input class="formula-input" id="formula" type="text"
-        placeholder="x^2  yoki  sin(x)  yoki  x^2+y^2"
-        autocomplete="off" autocorrect="off" spellcheck="false">
-    </div>
 
-    <div>
-      <div class="lbl">Ko'rinishi</div>
-      <div class="preview-box" id="preview">
-        <span class="preview-placeholder">formula yozganda bu yerda chiqadi</span>
+  <!-- LEFT -->
+  <div class="left">
+    <div class="eqscroll" id="eqList"></div>
+    <button class="addbtn" id="btnAdd">＋ Tenglama / Tengsizlik qo'shish</button>
+
+    <!-- Ranges -->
+    <div class="sechdr" id="hdrR">📐 Ko'rish diapazoni</div>
+    <div class="secbody" id="bodyR">
+      <div class="rgrid">
+        <span class="rlbl" style="color:#38bdf8">x</span>
+        <input class="rinp" id="xmin" value="-10">
+        <span class="rsep">—</span>
+        <input class="rinp" id="xmax" value="10">
+        <span class="rlbl" style="color:#facc15">y</span>
+        <input class="rinp" id="ymin" value="-10">
+        <span class="rsep">—</span>
+        <input class="rinp" id="ymax" value="10">
+        <span class="rlbl" style="color:#a78bfa">z</span>
+        <input class="rinp" id="zmin" value="-5">
+        <span class="rsep">—</span>
+        <input class="rinp" id="zmax" value="5">
       </div>
+      <button class="autobtn" id="btnAuto">↺ Standart diapazon (−10 dan 10 gacha)</button>
     </div>
 
-    <div>
-      <div class="lbl">Tez kiritish</div>
-      <div class="quick-btns">
-        <button class="qbtn" onclick="ins('x^2')">x²</button>
-        <button class="qbtn" onclick="ins('x^3')">x³</button>
-        <button class="qbtn" onclick="ins('sqrt(x)')">√x</button>
-        <button class="qbtn" onclick="ins('sin(x)')">sin</button>
-        <button class="qbtn" onclick="ins('cos(x)')">cos</button>
-        <button class="qbtn" onclick="ins('tan(x)')">tan</button>
-        <button class="qbtn" onclick="ins('log(x)')">log</button>
-        <button class="qbtn" onclick="ins('exp(x)')">eˣ</button>
-        <button class="qbtn" onclick="ins('abs(x)')">|x|</button>
-        <button class="qbtn" onclick="ins('1/x')">1/x</button>
-        <button class="qbtn" onclick="ins('pi')">π</button>
-        <button class="qbtn" onclick="ins('x^2 + y^2')">x²+y²</button>
-        <button class="qbtn" onclick="ins('sin(x)*cos(y)')">sin·cos</button>
-        <button class="qbtn" onclick="ins('x^2 - y^2')">x²−y²</button>
-      </div>
+    <!-- Keyboard -->
+    <div class="kbwrap">
+      <div class="kbhdr">⌨ Matematik Klaviatura</div>
+      <div class="kbrows" id="kbRows"></div>
     </div>
-
-    <div class="sep"></div>
-
-    <div>
-      <div class="lbl">Avtomatik aniqlash</div>
-      <div class="detect-badge">
-        <div class="detect-dot" id="detect-dot"></div>
-        <div class="detect-text" id="detect-text">formula kiriting...</div>
-      </div>
-    </div>
-
-    <div id="info-section" style="display:none">
-      <div class="lbl">Ma'lumot</div>
-      <div class="info-grid" id="info-grid"></div>
-    </div>
-
-    <div class="err-box" id="err-box"></div>
-    <button class="plot-btn" onclick="plot()">Grafik chizish</button>
   </div>
 
-  <div class="right-panel">
-    <div class="graph-toolbar" id="graph-toolbar" style="display:none">
-      <div class="graph-info" id="graph-info"></div>
-      <div class="toolbar-btns">
-        <button class="tbtn" onclick="zoomIn()">＋</button>
-        <button class="tbtn" onclick="zoomOut()">－</button>
-        <button class="tbtn active" id="mode-btn" onclick="toggleMode()">✥ Surish</button>
-        <button class="tbtn" onclick="toggleGrid()" id="grid-btn">Grid ✓</button>
-        <button class="tbtn" onclick="resetView()">↺ Reset</button>
-      </div>
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="axrow">
+      <div class="axtag"><div class="axline" style="background:#38bdf8"></div>x o'qi</div>
+      <div class="axtag"><div class="axline" style="background:#facc15"></div>y o'qi</div>
+      <div class="axtag" id="legSol" style="display:none"><div class="axline" style="background:#fbbf24"></div>Kesishma sohasi</div>
     </div>
-    <div class="hint-strip" id="hint-strip" style="display:none">
-      2D: sichqon g'ildiragi = zoom &nbsp;·&nbsp; bosib suring = harakat &nbsp;·&nbsp; 3D: bosib aylantiring
+    <div class="gbar">
+      <button class="gbtn" id="btnZI">＋</button>
+      <button class="gbtn" id="btnZO">－</button>
+      <button class="gbtn on" id="btnPan">✥ Pan</button>
+      <button class="gbtn on" id="btnGrid">⊞ Grid</button>
+      <button class="gbtn" id="btnRatio">⊡ 1:1</button>
+      <button class="gbtn" id="btnReset">⊙ Reset</button>
+      <button class="gbtn" id="btnPNG">⤓ PNG</button>
+      <div class="ginfo" id="ginfo"></div>
     </div>
-    <div id="graph">
-      <div class="graph-placeholder">
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <path d="M5 50 L15 30 L25 38 L35 20 L45 28 L55 10" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <line x1="5" y1="55" x2="55" y2="55" stroke="#404040" stroke-width="1"/>
-          <line x1="5" y1="5" x2="5" y2="55" stroke="#404040" stroke-width="1"/>
+    <div class="solbar" id="solbar">
+      <div class="soltitle">🔑 Yechimlar / Kesishma nuqtalari</div>
+      <div class="solchips" id="solchips"></div>
+    </div>
+    <div id="gouter">
+      <div id="graph"></div>
+      <div class="emptyhint" id="ehint">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="24" stroke="#818cf8" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <path d="M8 32 Q18 14 32 32 Q46 50 56 32" stroke="#818cf8" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <line x1="6" y1="32" x2="58" y2="32" stroke="#38bdf8" stroke-width="1.5"/>
+          <line x1="32" y1="6" x2="32" y2="58" stroke="#facc15" stroke-width="1.5"/>
         </svg>
-        <p>Formula yozing va "Grafik chizish" bosing</p>
+        <p>Tenglama kiriting va "Chizish" bosing</p>
+        <small>sin(x) · y=x²+1 · x²+y²=9 · x²+y²&lt;4 · z=sin(x)*cos(y)</small>
       </div>
     </div>
   </div>
+</div>
+
+<!-- GUIDE MODAL -->
+<div class="overlay" id="guideModal">
+<div class="modal">
+  <div class="mhdr">
+    <div class="mtitle">📖 Yo'riqnoma — Barcha kiritish shakllari va imkoniyatlar</div>
+    <button class="mclose" id="btnGClose">✕</button>
+  </div>
+  <div class="mbody">
+
+    <div class="gintro">
+      Bu dastur <strong>funksiya, tenglama, tengsizlik va 3D sirtlarni</strong> chizadi.<br>
+      <strong>Har bir qator mustaqil:</strong> o'z grafigini, o'z rangini alohida chizadi — boshqa qatorlarga hech qanday ta'siri yo'q.<br>
+      <strong>Shart maydoni</strong> — asosiy tenglamaning filtri. Shart kiritilsa grafik faqat shu sohasida chiziladi.<br>
+      Shart <strong>butunlay mustaqil</strong> — shart ichidagi x, y faqat koordinatani anglatadi, asosiy tenglamadagi o'zgaruvchilar bilan hech qanday bog'liqligi yo'q.<br>
+      <strong>Enter</strong> → chizish &nbsp;·&nbsp; <strong>Scroll</strong> → zoom &nbsp;·&nbsp; <strong>Drag</strong> → siljitish &nbsp;·&nbsp; <strong>Esc</strong> → yopish
+    </div>
+
+    <div class="gsec">📈 Eksplisit funksiyalar y = f(x)</div>
+    <div class="ggrid">
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <path d="M4,74 Q25,42 54,22 Q78,40 104,50" stroke="#818cf8" stroke-width="2.2" fill="none"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">y= bilan yoki tenglamasiz — ikkalasi bir xil</div>
+            <div class="gdesc"><code>y=sin(x)</code> va <code>sin(x)</code> bir xil. <code>y=x^2+1</code> va <code>x^2+1</code> bir xil natija.</div>
+            <span class="gex" onclick="gL('y=sin(x)')">y=sin(x)</span>
+            <span class="gex" onclick="gL('sin(x)')">sin(x) ← yuqoridagi bilan bir xil</span>
+            <span class="gex" onclick="gL('y=x^2+1')">y=x^2+1</span>
+            <span class="gex" onclick="gL('x^2+1')">x^2+1 ← yuqoridagi bilan bir xil</span>
+          </div>
+        </div>
+      </div>
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <path d="M18,4 Q35,43 54,68" stroke="#34d399" stroke-width="2.2" fill="none"/>
+            <path d="M54,4 Q72,28 95,43" stroke="#f472b6" stroke-width="2.2" fill="none"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">Murakkab funksiyalar va operatorlar</div>
+            <div class="gdesc">sqrt, abs, log, exp, floor, ceil. Ko'paytirish: <code>2*x</code> yoki <code>2x</code>. Daraja: <code>x^2</code> yoki <code>x**2</code>.</div>
+            <span class="gex" onclick="gL('sqrt(x)')">sqrt(x)</span>
+            <span class="gex" onclick="gL('abs(x-2)')">abs(x-2)</span>
+            <span class="gex" onclick="gL('log(x)')">log(x) — tabiiy logarifm</span>
+            <span class="gex" onclick="gL('2x^2-3x+1')">2x^2-3x+1 (implicit *)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gsec">⭕ Implicit tenglamalar F(x,y) = G(x,y)</div>
+    <div class="ggrid">
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <circle cx="54" cy="43" r="28" stroke="#818cf8" stroke-width="2.2" fill="none"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">Aylana, ellips, giperbola</div>
+            <div class="gdesc">Ikkala tomonda x va y bo'lsa — implicit egri chiziq hosil bo'ladi.</div>
+            <span class="gex" onclick="gL('x^2+y^2=9')">x^2+y^2=9 (aylana r=3)</span>
+            <span class="gex" onclick="gL('x^2/4+y^2/9=1')">x^2/4+y^2/9=1 (ellips)</span>
+            <span class="gex" onclick="gL('x^2-y^2=4')">x^2-y^2=4 (giperbola)</span>
+            <span class="gex" onclick="gL('y^2=4*x')">y^2=4*x (gorizontal parabola)</span>
+          </div>
+        </div>
+      </div>
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <path d="M4,55 Q18,50 36,43 M72,43 Q88,36 104,30" stroke="#f472b6" stroke-width="2.2" fill="none"/>
+            <path d="M4,62 Q18,55 36,43 M72,43 Q90,30 104,20" stroke="#f472b6" stroke-width="2.2" fill="none"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">Har qanday F(x,y)=G(x,y)</div>
+            <div class="gdesc">Trigonometrik, transcendent va boshqa murakkab tenglamalar ham qabul qilinadi.</div>
+            <span class="gex" onclick="gL('sin(x)=cos(y)')">sin(x)=cos(y)</span>
+            <span class="gex" onclick="gL('x^2+y^2=x*y+4')">x^2+y^2=x*y+4</span>
+            <span class="gex" onclick="gL('sin(x^2+y^2)=0.5')">sin(x^2+y^2)=0.5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gsec">🎨 Tengsizliklar — soha bo'yash</div>
+    <div class="ggrid">
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <circle cx="54" cy="43" r="28" fill="rgba(129,140,248,.22)" stroke="#818cf8" stroke-width="2" stroke-dasharray="5,3"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">&lt; &gt; &lt;= &gt;= — soha bo'yash</div>
+            <div class="gdesc">Tengsizlik kiritilsa soha bo'yaladi. Chegara chiziq ham ko'rsatiladi (qattiq yoki uzuq).</div>
+            <span class="gex" onclick="gL('x^2+y^2&lt;9')">x^2+y^2&lt;9 (aylana ichki sohasi)</span>
+            <span class="gex" onclick="gL('y&gt;=x^2-4')">y&gt;=x^2-4</span>
+            <span class="gex" onclick="gL('y&lt;sin(x)')">y&lt;sin(x)</span>
+            <span class="gex" onclick="gL('x&gt;0')">x&gt;0 (o'ng yarim tekislik)</span>
+          </div>
+        </div>
+      </div>
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <circle cx="54" cy="43" r="30" fill="rgba(129,140,248,.15)" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <circle cx="54" cy="43" r="15" fill="rgba(251,146,60,.15)" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <circle cx="54" cy="43" r="22" fill="rgba(251,191,36,.32)"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">Bir nechta tengsizlik — kesishma sohasi</div>
+            <div class="gdesc">2+ tengsizlik kiritilsa kesishma sohasi sariq rang bilan ta'kidlanadi.</div>
+            <span class="gex" onclick="gL2(['x^2+y^2&lt;16','x^2+y^2&gt;4'])">halqa sohasi (r=2 dan r=4 gacha)</span>
+            <span class="gex" onclick="gL2(['y&lt;x+3','y&gt;-x-1','x&lt;4'])">uchburchak soha</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gsec">🔗 Shart maydoni — grafik uchun mustaqil filtr</div>
+    <div class="ggrid">
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <rect x="54" y="4" width="50" height="78" fill="rgba(250,204,21,.07)"/>
+            <path d="M4,71 Q28,54 54,43 Q74,33 104,22" stroke="#818cf8" stroke-width="1.5" fill="none" opacity=".25" stroke-dasharray="3,2"/>
+            <path d="M54,43 Q74,33 104,22" stroke="#fbbf24" stroke-width="4" fill="none"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">Shart — oddiy filtr (x&gt;0)</div>
+            <div class="gdesc">Shart maydoni asosiy tenglamadan <strong>butunlay mustaqil</strong>. Faqat shart bajarilgan sohadagi qism sariq rangda ta'kidlanadi.</div>
+            <span class="gex yel" onclick="gL1('y=x^2-4','x&gt;0')">y=x²-4 → shart: x&gt;0</span>
+            <span class="gex yel" onclick="gL1('y=sin(x)','x&gt;=0')">y=sin(x) → shart: x&gt;=0</span>
+            <span class="gex yel" onclick="gL1('x^2+y^2=9','x&gt;0')">x²+y²=9 → shart: x&gt;0</span>
+          </div>
+        </div>
+      </div>
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <circle cx="54" cy="43" r="24" fill="rgba(251,191,36,.08)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,2"/>
+            <path d="M54,19 A24,24,0,0,1,78,43" stroke="#fbbf24" stroke-width="3.5" fill="none"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">Shart — murakkab ifoda</div>
+            <div class="gdesc">Shart maydoniga <code>x^2+y^2&lt;4</code>, <code>x&gt;0 &amp;&amp; y&gt;0</code> kabi murakkab ifodalar yozsa bo'ladi.</div>
+            <span class="gex yel" onclick="gL1('x^2+y^2=9','x&gt;0 &amp;&amp; y&gt;0')">aylana → shart: x&gt;0 va y&gt;0</span>
+            <span class="gex yel" onclick="gL1('y=x^2','x^2+y^2&lt;16')">y=x² → shart: aylana ichida</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gsec">🔀 Bir nechta grafik va kesishma nuqtalari</div>
+    <div class="ggrid">
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <path d="M4,78 Q28,50 54,25 Q78,50 104,78" stroke="#818cf8" stroke-width="2" fill="none"/>
+            <path d="M4,55 Q28,50 54,44 Q78,38 104,32" stroke="#34d399" stroke-width="2" fill="none"/>
+            <circle cx="38" cy="43" r="3.5" fill="#fbbf24"/><circle cx="72" cy="42" r="3.5" fill="#fbbf24"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">Kesishma nuqtalari avtomatik topiladi</div>
+            <div class="gdesc">2+ funksiya kiritilsa ular kesishgan joylar sariq nuqta bilan ko'rsatiladi.</div>
+            <span class="gex" onclick="gL2(['y=x^2','y=2*x+1'])">y=x² va y=2x+1</span>
+            <span class="gex" onclick="gL2(['y=sin(x)','y=cos(x)'])">sin(x) va cos(x)</span>
+            <span class="gex" onclick="gL2(['y=x^2-3','y=x+1'])">parabola va to'g'ri chiziq</span>
+          </div>
+        </div>
+      </div>
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <line x1="4" y1="43" x2="104" y2="43" stroke="#38bdf8" stroke-width="1"/>
+            <line x1="54" y1="4" x2="54" y2="82" stroke="#facc15" stroke-width="1"/>
+            <circle cx="54" cy="43" r="28" stroke="#818cf8" stroke-width="1.5" fill="none"/>
+            <circle cx="54" cy="43" r="16" fill="rgba(251,146,60,.2)" stroke="#fb923c" stroke-width="1.5" fill="none"/>
+            <path d="M4,30 Q28,35 54,43 Q78,50 104,55" stroke="#34d399" stroke-width="2" fill="none"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">Aralash — tenglama + tengsizlik + funksiya</div>
+            <div class="gdesc">Har qanday kombinatsiyani aralash kiritsangiz bo'ladi. Har biri alohida chiziladi.</div>
+            <span class="gex" onclick="gL2(['x^2+y^2=9','y&lt;x+1'])">aylana + chiziq ostidagi soha</span>
+            <span class="gex" onclick="gL3(['y=x^2','x^2+y^2=16','y&gt;0'])">3 qator birga</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gsec">🌐 3D Sirtlar z = f(x, y)</div>
+    <div class="ggrid">
+      <div class="gcard">
+        <div class="gtop">
+          <svg class="gsvg" width="108" height="86" viewBox="0 0 108 86"><rect width="108" height="86" fill="#0d0d0d"/>
+            <defs><linearGradient id="g3d" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#10b981" stop-opacity=".8"/>
+              <stop offset="100%" stop-color="#a78bfa" stop-opacity=".8"/>
+            </linearGradient></defs>
+            <path d="M10,70 L54,14 L98,70 Z" fill="url(#g3d)" opacity=".5"/>
+            <path d="M10,70 Q32,28 54,20 Q76,28 98,70" stroke="#818cf8" stroke-width="1.5" fill="none"/>
+            <path d="M10,70 Q32,50 54,46 Q76,50 98,70" stroke="#34d399" stroke-width="1.2" fill="none"/>
+          </svg>
+          <div class="ginfo">
+            <div class="gtitle">3D sirt — z = f(x,y)</div>
+            <div class="gdesc">x va y ikkalasi bo'lsa 3D sirt chiziladi. <code>z=</code> yozsangiz ham yozmay ham bo'ladi.</div>
+            <span class="gex" onclick="gL('sin(x)*cos(y)')">sin(x)*cos(y)</span>
+            <span class="gex" onclick="gL('z=x^2+y^2')">z=x^2+y^2 (paraboloid)</span>
+            <span class="gex" onclick="gL('sqrt(x^2+y^2)')">sqrt(x^2+y^2) (konus)</span>
+            <span class="gex" onclick="gL('sin(sqrt(x^2+y^2))')">sin(r) — dalgali sirt</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gsec">⌨ To'liq kiritish qoidalari jadvali</div>
+    <table class="gtable">
+      <tr><th>Kiritish</th><th>Nima chiziladi</th><th>Izoh</th></tr>
+      <tr><td>sin(x)</td><td>y=sin(x) grafigi</td><td>y= shart emas</td></tr>
+      <tr><td>y=sin(x)</td><td>y=sin(x) grafigi</td><td>Yuqoridagi bilan bir xil</td></tr>
+      <tr><td>x^2+1</td><td>Parabola y=x²+1</td><td>y= bo'lmasa ham bir xil</td></tr>
+      <tr><td>y=x^2+1</td><td>Parabola y=x²+1</td><td>Yuqoridagi bilan bir xil</td></tr>
+      <tr><td>x^2+y^2=9</td><td>Aylana r=3</td><td>Implicit tenglama</td></tr>
+      <tr><td>x^2/4+y^2/9=1</td><td>Ellips</td><td>Implicit tenglama</td></tr>
+      <tr><td>x^2-y^2=4</td><td>Giperbola</td><td>Implicit tenglama</td></tr>
+      <tr><td>sin(x)=cos(y)</td><td>Murakkab egri chiziq</td><td>Implicit tenglama</td></tr>
+      <tr><td>x^2+y^2&lt;9</td><td>Aylana ichidagi soha</td><td>Tengsizlik — bo'yash</td></tr>
+      <tr><td>y&gt;sin(x)</td><td>Sin ustidagi soha</td><td>Tengsizlik</td></tr>
+      <tr><td>x&gt;0</td><td>O'ng yarim tekislik</td><td>Bir o'zgaruvchili tengsizlik</td></tr>
+      <tr><td>y&lt;=3</td><td>y=3 dan pastdagi soha</td><td>Gorizontal soha</td></tr>
+      <tr><td>sin(x)*cos(y)</td><td>3D to'lqin sirti</td><td>x va y ikkalasi → 3D</td></tr>
+      <tr><td>z=x^2+y^2</td><td>3D paraboloid</td><td>z= bilan aniq belgilash</td></tr>
+      <tr><td>x^2 yoki x**2</td><td>Daraja</td><td>Ikkalasi bir xil</td></tr>
+      <tr><td>2x yoki 2*x</td><td>Ko'paytirish</td><td>Ikkalasi bir xil</td></tr>
+      <tr><td>pi, e</td><td>π ≈ 3.14..., e ≈ 2.71...</td><td>Matematik konstantalar</td></tr>
+      <tr><td>Shart: x&gt;0</td><td>Faqat x&gt;0 sohasida</td><td>Asosiy grafik filtri</td></tr>
+      <tr><td>Shart: x&gt;0 &amp;&amp; y&lt;5</td><td>Ikki shart birga</td><td>&amp;&amp; yoki vergul bilan</td></tr>
+      <tr><td>Shart: x^2+y^2&lt;9</td><td>Aylana ichida</td><td>Murakkab 2D shart</td></tr>
+    </table>
+
+  </div>
+</div>
 </div>
 
 <script>
-const CONSTANTS = new Set(['e','i','pi','phi','tau','Infinity','NaN','true','false','null']);
-const FUNCTIONS = new Set(['sin','cos','tan','asin','acos','atan','atan2','sinh','cosh','tanh',
-  'sqrt','cbrt','exp','log','log2','log10','abs','ceil','floor','round','sign',
-  'min','max','mod','pow','factorial','gamma','beta','erf']);
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+var COLORS=['#818cf8','#34d399','#fb923c','#f472b6','#38bdf8','#a3e635','#e879f9','#fbbf24','#f97316','#06b6d4'];
+var MATHCONST={e:1,i:1,pi:1,phi:1,tau:1,Infinity:1,NaN:1,"true":1,"false":1,"null":1};
+var MATHFUNC={sin:1,cos:1,tan:1,asin:1,acos:1,atan:1,atan2:1,sinh:1,cosh:1,tanh:1,
+              sqrt:1,cbrt:1,exp:1,log:1,log2:1,log10:1,abs:1,ceil:1,floor:1,round:1,
+              sign:1,min:1,max:1,mod:1,pow:1,factorial:1,gamma:1,erf:1};
 
-let gridVisible = true;
-let dragMode = 'pan';
-let is3D = false;
+var EQS=[], NID=0, FID=null, GRIDON=true, RATIOON=false, DRAG='pan', IS3D=false, PTM=null;
+var KBFIELD='expr';
 
-// Doimiy: -10 dan 10 gacha, 1 birlik interval
-const AXIS_LO = -10;
-const AXIS_HI = 10;
-
-function extractVars(expr){
-  const tokens = math.parse(expr);
-  const vars = new Set();
-  tokens.traverse(node=>{
-    if(node.isSymbolNode && !CONSTANTS.has(node.name) && !FUNCTIONS.has(node.name))
-      vars.add(node.name);
-  });
-  return [...vars].sort();
+// ════════════════════════════════════════════════════════
+//  RANGE
+// ════════════════════════════════════════════════════════
+function gN(id,d){var v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:d;}
+function DR(){return{x0:gN('xmin',-10),x1:gN('xmax',10),y0:gN('ymin',-10),y1:gN('ymax',10),z0:gN('zmin',-5),z1:gN('zmax',5)};}
+// Calculation range extends ×5 beyond display so curves don't abruptly stop at viewport edge
+function CR(){
+  var d=DR(), xw=Math.abs(d.x1-d.x0), yw=Math.abs(d.y1-d.y0);
+  return{x0:Math.max(d.x0-xw*4,-100),x1:Math.min(d.x1+xw*4,100),
+         y0:Math.max(d.y0-yw*4,-100),y1:Math.min(d.y1+yw*4,100)};
 }
 
-function toLatex(raw){
-  try{ return math.parse(raw).toTex(); }catch(e){ return raw; }
+// ════════════════════════════════════════════════════════
+//  NORMALIZE — make expression mathjs-compatible
+//  MathJS supports ^ natively, so we keep it.
+//  We only add implicit multiplication (2x → 2*x).
+// ════════════════════════════════════════════════════════
+function norm(s){
+  return s
+    .replace(/π/g,'pi')
+    .replace(/(\d)([a-zA-Z(])/g,function(m,d,c){return d+'*'+c;});
+    // Note: ^ stays as ^ because mathjs handles it natively
 }
 
-function computeDomain(expr, vars){
-  const info = {};
-  vars.forEach(v=>{
-    if(expr.includes('sqrt')||expr.includes('log')) info[v]='[0, +\u221e)';
-    else if(expr.includes('1/'+v)||expr.includes('/'+v)) info[v]='\u211d \\ {0}';
-    else info[v]='(\u2212\u221e, +\u221e)';
-  });
-  return info;
+// ════════════════════════════════════════════════════════
+//  EXTRACT VARIABLES from expression
+// ════════════════════════════════════════════════════════
+function evars(expr){
+  var v={};
+  try{math.parse(expr).traverse(function(n){
+    if(n.isSymbolNode&&!MATHCONST[n.name]&&!MATHFUNC[n.name])v[n.name]=1;
+  });}catch(e){}
+  return Object.keys(v).sort();
 }
 
-document.getElementById('formula').addEventListener('input', function(){
-  const val = this.value.trim();
-  const prev = document.getElementById('preview');
-  const dot  = document.getElementById('detect-dot');
-  const dtxt = document.getElementById('detect-text');
-  document.getElementById('err-box').style.display='none';
+// ════════════════════════════════════════════════════════
+//  PARSE EXPRESSION — determines type from input string
+// ════════════════════════════════════════════════════════
+function parse(raw){
+  var s=raw.trim(); if(!s) return null;
 
-  if(!val){
-    prev.innerHTML='<span class="preview-placeholder">formula yozganda bu yerda chiqadi</span>';
-    dot.classList.remove('active'); dtxt.innerHTML='formula kiriting...';
-    document.getElementById('info-section').style.display='none';
-    return;
+  // 1) Inequality — check >= <= before > <
+  var im=s.match(/^(.*?)(>=|<=|>|<)(.+)$/);
+  if(im){
+    var lR=im[1].trim(), op=im[2], rR=im[3].trim();
+    if(!lR) return null;
+    var lN=norm(lR), rN=norm(rR), diff='('+lN+')-('+rN+')';
+    return{type:'ineq', lRaw:lR, rRaw:rR, lN:lN, rN:rN, diff:diff, op:op, vars:evars(diff)};
   }
-  try{
-    katex.render('f = '+toLatex(val), prev, {throwOnError:false, displayMode:true});
-    const vars = extractVars(val);
-    dot.classList.add('active');
-    if(vars.length===0)      dtxt.innerHTML='<strong>Konstanta</strong>';
-    else if(vars.length===1) dtxt.innerHTML=`<strong>${vars[0]}</strong> \u2014 2D grafik`;
-    else if(vars.length===2) dtxt.innerHTML=`<strong>${vars.join(', ')}</strong> \u2014 3D sirt`;
-    else                     dtxt.innerHTML=`<strong>${vars.join(', ')}</strong> \u2014 ${vars.length} o'zgaruvchi`;
 
-    const dom = computeDomain(val, vars);
-    const ig = document.getElementById('info-grid');
-    ig.innerHTML = vars.map(v=>`
-      <div class="info-card">
-        <div class="ic-lbl">Domen (${v})</div>
-        <div class="ic-val">${v} \u2208 ${dom[v]}</div>
-      </div>`).join('');
-    if(vars.length){
-      ig.innerHTML+=`<div class="info-card"><div class="ic-lbl">O'zgaruvchilar</div><div class="ic-val">${vars.length} ta</div></div>`;
+  // 2) Equation with =
+  var ei=s.indexOf('=');
+  if(ei>0){
+    var lE=s.slice(0,ei).trim(), rE=s.slice(ei+1).trim();
+    if(lE&&rE){
+      var lEN=norm(lE), rEN=norm(rE);
+      var diffE='('+lEN+')-('+rEN+')';
+      var varsE=evars(diffE);
+      if(lE==='z') return{type:'surf', rawRhs:rE, exprN:rEN, vars:varsE};
+      if(lE==='y') return{type:'expl', rawRhs:rE, exprN:rEN, vars:varsE};
+      if(varsE.includes('z')) return{type:'surf', rawRhs:rE, exprN:rEN, vars:varsE};
+      return{type:'impl', lRaw:lE, rRaw:rE, lN:lEN, rN:rEN, diff:diffE, vars:varsE};
     }
-    document.getElementById('info-section').style.display = vars.length ? 'block':'none';
-  }catch(e){
-    prev.innerHTML='<span class="preview-placeholder">formulada xato</span>';
-    dot.classList.remove('active'); dtxt.innerHTML='formulada xato';
-  }
-});
-
-function ins(txt){
-  const inp = document.getElementById('formula');
-  const s=inp.selectionStart, e=inp.selectionEnd;
-  inp.value = inp.value.slice(0,s)+txt+inp.value.slice(e);
-  inp.selectionStart = inp.selectionEnd = s+txt.length;
-  inp.dispatchEvent(new Event('input'));
-  inp.focus();
-}
-
-// O'q sozlamalari — -10..10, har 1 birlikda chiziq
-function axisBase(title, lo, hi){
-  return {
-    title:{text: title, font:{color:'#888', size:13}},
-    color:'#666',
-    gridcolor:'#202020',
-    gridwidth:1,
-    dtick: 1,           // har 1 birlikda chiziq
-    tick0: 0,
-    tickmode: 'linear',
-    range: [lo, hi],
-    zerolinecolor:'#555',
-    zerolinewidth:2,
-    linecolor:'#444',
-    linewidth:1,
-    showline:true,
-    tickcolor:'#444',
-    tickfont:{color:'#555', size:10},
-    showgrid:true,
-    fixedrange: false,
-  };
-}
-
-function axis3DBase(title){
-  return {
-    title:{text:title, font:{color:'#777', size:12}},
-    gridcolor:'#222',
-    zerolinecolor:'#444',
-    zerolinewidth:2,
-    color:'#555',
-    tickfont:{color:'#555', size:10},
-    showgrid:true,
-    showline:true,
-    linecolor:'#333',
-    dtick: 1,
-    tickmode: 'linear',
-  };
-}
-
-const PLOTLY_CONFIG = {
-  responsive:true,
-  scrollZoom:true,
-  displayModeBar:true,
-  modeBarButtonsToRemove:['select2d','lasso2d','autoScale2d'],
-  displaylogo:false,
-  toImageButtonOptions:{format:'png', filename:'grafik', scale:2},
-};
-
-let is3DMode = false;
-
-function plot(){
-  const raw = document.getElementById('formula').value.trim();
-  const err = document.getElementById('err-box');
-  err.style.display='none';
-  if(!raw){err.textContent='Formula kiriting!';err.style.display='block';return;}
-
-  let vars;
-  try{
-    math.parse(raw);
-    vars = extractVars(raw);
-  }catch(e){
-    err.textContent='Formulada xato: '+e.message;
-    err.style.display='block';
-    return;
   }
 
-  document.getElementById('graph-toolbar').style.display='flex';
-  document.getElementById('hint-strip').style.display='block';
-  document.getElementById('graph-info').innerHTML =
-    `<span>f = ${raw}</span>&nbsp;\u00b7&nbsp;${vars.length===0?'konstanta':vars.join(', ')} o'zgaruvchi`;
-
-  if(vars.length<=1){ is3D=false; plot2D(raw, vars.length?vars:['x']); }
-  else              { is3D=true;  plot3D(raw, vars); }
-
-  document.getElementById('mode-btn').textContent = is3D ? '\u21bb Aylantirish' : '\u2725 Surish';
+  // 3) Plain expression — auto-detect
+  var nP=norm(s), vP=evars(nP);
+  if((vP.includes('x')&&vP.includes('y'))||vP.includes('z'))
+    return{type:'surf', rawRhs:s, exprN:nP, vars:vP};
+  // Explicit: y=expr (x or no variables)
+  return{type:'expl', rawRhs:s, exprN:nP, vars:vP};
 }
 
-function plot2D(expr, vars){
-  const v = vars[0]||'x';
-  const lo = AXIS_LO, hi = AXIS_HI;
-  const N = 1000;
-  const xs=[], ys=[];
-  const step=(hi-lo)/(N-1);
-  for(let i=0;i<N;i++){
-    const xv=lo+i*step;
+// ════════════════════════════════════════════════════════
+//  PARSE CONDITIONS — completely independent from main expression
+//  Uses only (x,y) coordinate values at each point.
+//  No connection whatsoever to other rows' variables.
+// ════════════════════════════════════════════════════════
+function parseCond(str){
+  if(!str||!str.trim()) return null;
+  var segs=str.trim().split(/&&|,|\band\b/i).map(function(x){return x.trim();}).filter(Boolean);
+  var result=[];
+  segs.forEach(function(seg){
+    var m=seg.match(/^(.+?)(>=|<=|>|<)(.+)$/);
+    if(!m) return;
     try{
-      const scope={}; vars.forEach(u=>scope[u]=0); scope[v]=xv;
-      const yv=math.evaluate(expr,scope);
-      xs.push(xv);
-      ys.push(typeof yv==='number'&&isFinite(yv)?yv:null);
-    }catch(e){ xs.push(xv); ys.push(null); }
-  }
-
-  // Y oralig'ini ma'lumotga qarab cheklash (-10..10 atrofida)
-  const validY = ys.filter(y=>y!==null);
-  const yMin = validY.length ? Math.max(Math.min(...validY)*1.1, -50) : -10;
-  const yMax = validY.length ? Math.min(Math.max(...validY)*1.1,  50) :  10;
-
-  const layout={
-    paper_bgcolor:'#0a0a0a',
-    plot_bgcolor:'#0a0a0a',
-    font:{color:'#888', family:'Segoe UI,system-ui,sans-serif', size:11},
-    margin:{l:50,r:20,t:20,b:50},
-    dragmode: dragMode,
-    xaxis: axisBase(v, lo, hi),
-    yaxis: {
-      title:{text:'f('+v+')', font:{color:'#888', size:13}},
-      color:'#666',
-      gridcolor:'#202020',
-      gridwidth:1,
-      dtick: 1,
-      tick0: 0,
-      tickmode: 'linear',
-      range: [
-        Math.max(Math.floor(yMin), -10),
-        Math.min(Math.ceil(yMax),   10)
-      ],
-      zerolinecolor:'#555',
-      zerolinewidth:2,
-      linecolor:'#444',
-      linewidth:1,
-      showline:true,
-      tickcolor:'#444',
-      tickfont:{color:'#555', size:10},
-      showgrid:true,
-      fixedrange: false,
-    },
-    hovermode:'x unified',
-    hoverlabel:{bgcolor:'#1a1a1a',bordercolor:'#333',font:{color:'#ccc',size:12}},
-  };
-
-  const trace={
-    x:xs, y:ys,
-    mode:'lines',
-    line:{color:'#a78bfa', width:2},
-    connectgaps:false,
-    hovertemplate:`${v}: %{x:.3f}<br>f: %{y:.3f}<extra></extra>`,
-  };
-
-  Plotly.react('graph',[trace], layout, PLOTLY_CONFIG);
+      var lN=norm(m[1].trim()), rN=norm(m[3].trim());
+      var diff='('+lN+')-('+rN+')';
+      result.push({fn:math.compile(diff), op:m[2]});
+    }catch(e){}
+  });
+  return result.length?result:null;
 }
 
-function plot3D(expr, vars){
-  const v1=vars[0], v2=vars[1];
-  const lo=AXIS_LO, hi=AXIS_HI;
-  const N=60;
-  const xs=linspace(lo,hi,N);
-  const ys=linspace(lo,hi,N);
-  const zs=[];
-  for(let j=0;j<N;j++){
-    const row=[];
-    for(let i=0;i<N;i++){
-      try{
-        const scope={}; vars.forEach(u=>scope[u]=0);
-        scope[v1]=xs[i]; scope[v2]=ys[j];
-        const z=math.evaluate(expr,scope);
-        row.push(typeof z==='number'&&isFinite(z)?z:null);
-      }catch(e){ row.push(null); }
+// Evaluate conditions at coordinate point — INDEPENDENT, uses only x,y
+function testC(conds,xv,yv){
+  if(!conds) return true;
+  var sc={x:xv, y:yv}; // these are COORDINATES, not equation variables
+  for(var i=0;i<conds.length;i++){
+    var c=conds[i], val;
+    try{val=c.fn.evaluate(sc);}catch(e){continue;}
+    if(typeof val!=='number'||!isFinite(val)) continue;
+    if(c.op==='>'){if(val<=0)return false;}
+    else if(c.op==='>='){if(val<0)return false;}
+    else if(c.op==='<'){if(val>=0)return false;}
+    else if(c.op==='<='){if(val>0)return false;}
+  }
+  return true;
+}
+
+// ════════════════════════════════════════════════════════
+//  LATEX PREVIEW
+// ════════════════════════════════════════════════════════
+function opLtx(op){return{'>':'>','<':'<','>=':'\\geq','<=':'\\leq'}[op]||op;}
+function toLtx(rawStr){
+  try{return math.parse(rawStr).toTex();}catch(e){return rawStr;}
+}
+function buildLtx(p,raw){
+  if(!p) return raw;
+  try{
+    if(p.type==='expl')   return 'y = '+toLtx(p.rawRhs||raw);
+    if(p.type==='impl')   return toLtx(p.lRaw)+' = '+toLtx(p.rRaw);
+    if(p.type==='ineq')   return toLtx(p.lRaw)+' '+opLtx(p.op)+' '+toLtx(p.rRaw);
+    if(p.type==='surf')   return 'z = '+toLtx(p.rawRhs||raw);
+  }catch(e){}
+  return raw;
+}
+
+// ════════════════════════════════════════════════════════
+//  EQUATION MANAGEMENT
+// ════════════════════════════════════════════════════════
+function addEq(expr,color,cond){
+  var id=NID++;
+  var c=color||COLORS[EQS.length%COLORS.length];
+  EQS.push({id:id,expr:expr||'',cond:cond||'',color:c,visible:true});
+  renderList();
+  focusEq(id);
+  if(expr) sched();
+}
+function removeEq(id){EQS=EQS.filter(function(e){return e.id!==id;});renderList();sched();}
+function toggleVis(id){var eq=getEq(id);if(!eq)return;eq.visible=!eq.visible;renderList();sched();}
+function setColor(id,c){var eq=getEq(id);if(!eq)return;eq.color=c;sched();renderList();}
+function getEq(id){return EQS.find(function(e){return e.id===id;});}
+function focusEq(id){
+  FID=id;
+  document.querySelectorAll('.eqrow').forEach(function(r){r.classList.toggle('focused',+r.dataset.id===id);});
+  var inp=document.querySelector('.exin[data-id="'+id+'"]');
+  if(inp) inp.focus();
+}
+function sched(){clearTimeout(PTM);PTM=setTimeout(plotAll,380);}
+
+// ════════════════════════════════════════════════════════
+//  RENDER EQUATION LIST
+// ════════════════════════════════════════════════════════
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function renderList(){
+  var el=document.getElementById('eqList');
+  el.innerHTML='';
+  EQS.forEach(function(eq){
+    var row=document.createElement('div');
+    row.className='eqrow'+(eq.id===FID?' focused':'')+(!eq.visible?' hidden':'');
+    row.dataset.id=eq.id;
+    row.onclick=function(){focusEq(eq.id);};
+    row.innerHTML=[
+      '<div class="dotbox">',
+        '<div class="dot" style="color:'+eq.color+';border-color:'+eq.color+'"',
+          ' onclick="event.stopPropagation();document.getElementById(\'cp'+eq.id+'\').click()" title="Rang"></div>',
+        '<input type="color" id="cp'+eq.id+'" class="clrinp" value="'+eq.color+'"',
+          ' onchange="setColor('+eq.id+',this.value)">',
+      '</div>',
+      '<div class="ebody">',
+        '<input class="exin" data-id="'+eq.id+'" value="'+esc(eq.expr)+'"',
+          ' placeholder="y=x²  ·  sin(x)  ·  x²+y²=9  ·  z=x²+y²"',
+          ' oninput="onExpr('+eq.id+',this.value)"',
+          ' onfocus="KBFIELD=\'expr\';FID='+eq.id+'"',
+          ' onclick="event.stopPropagation()"',
+          ' onkeydown="onKD(event)">',
+        '<div class="condrow">',
+          '<span class="condlbl">shart:</span>',
+          '<input class="condin" data-cond="'+eq.id+'" value="'+esc(eq.cond)+'"',
+            ' placeholder="x&gt;0  ·  x^2+y^2&lt;4  ·  x&gt;0 &amp;&amp; y&lt;5"',
+            ' oninput="onCond('+eq.id+',this.value)"',
+            ' onfocus="KBFIELD=\'cond\';FID='+eq.id+'"',
+            ' onclick="event.stopPropagation()"',
+            ' onkeydown="onKD(event)">',
+        '</div>',
+        '<div class="badge" id="meta'+eq.id+'" style="margin:2px 3px 0"></div>',
+        '<div class="preview" id="prev'+eq.id+'"></div>',
+      '</div>',
+      '<button class="visbtn" onclick="event.stopPropagation();toggleVis('+eq.id+')">'+(eq.visible?'👁':'🚫')+'</button>',
+      '<button class="delbtn" onclick="event.stopPropagation();removeEq('+eq.id+')">✕</button>'
+    ].join('');
+    el.appendChild(row);
+    if(eq.expr) refreshMeta(eq.id,eq.expr);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  META BADGE + KATEX PREVIEW
+// ════════════════════════════════════════════════════════
+var PVT={};
+function refreshMeta(id,raw){
+  var mEl=document.getElementById('meta'+id); if(!mEl) return;
+  var p=raw.trim()?parse(raw):null;
+  if(!p){mEl.textContent='';mEl.className='';return;}
+  var cls='badge ';
+  var txt='';
+  if(p.type==='ineq'){cls+='b-iq';txt='Tengsizlik';}
+  else if(p.type==='surf'){cls+='b-3d';txt='3D sirt';}
+  else if(p.type==='impl'){cls+='b-im';txt='Implicit egri';}
+  else{cls+='b-fn';txt='y = f(x)';}
+  mEl.className=cls; mEl.textContent=txt;
+
+  // KaTeX preview (debounced)
+  clearTimeout(PVT[id]);
+  PVT[id]=setTimeout(function(){
+    var pEl=document.getElementById('prev'+id); if(!pEl) return;
+    try{
+      var ltx=buildLtx(p,raw);
+      katex.render('\\small '+ltx,pEl,{throwOnError:false,output:'html'});
+    }catch(e){pEl.textContent=raw;}
+  },160);
+}
+
+// ════════════════════════════════════════════════════════
+//  INPUT HANDLERS
+// ════════════════════════════════════════════════════════
+function onExpr(id,val){var eq=getEq(id);if(!eq)return;eq.expr=val;refreshMeta(id,val);sched();}
+function onCond(id,val){var eq=getEq(id);if(!eq)return;eq.cond=val;sched();}
+function onKD(e){if(e.key==='Enter'){e.preventDefault();clearTimeout(PTM);plotAll();}}
+
+// ════════════════════════════════════════════════════════
+//  PLOT ORCHESTRATOR
+// ════════════════════════════════════════════════════════
+function plotAll(){
+  clearTimeout(PTM);
+  // Filter: visible AND has expression
+  var vis=EQS.filter(function(e){return e.visible&&e.expr.trim();});
+  if(!vis.length){clearPlot();return;}
+  setP('busy','Hisoblanmoqda…');
+  var items=vis.map(function(e){return{eq:e, p:parse(e.expr), conds:parseCond(e.cond)};});
+  var has3D=items.some(function(x){return x.p&&x.p.type==='surf';});
+  if(has3D) do3D(items); else do2D(items);
+}
+
+// ════════════════════════════════════════════════════════
+//  2D PLOTTING — every equation plotted INDEPENDENTLY
+// ════════════════════════════════════════════════════════
+function do2D(items){
+  IS3D=false;
+  var dr=DR(), cr=CR();
+  var traces=[], sols=[];
+
+  items.forEach(function(item){
+    var p=item.p, eq=item.eq, conds=item.conds;
+    if(!p) return;
+    if(p.type==='expl'){
+      var r=drawExpl(p.exprN, cr.x0, cr.x1, eq.color, conds);
+      if(r.main) traces.push(r.main);
+      if(r.hi)   traces.push(r.hi);
+      r.roots.forEach(function(pt){sols.push(pt);});
+    } else if(p.type==='impl'){
+      drawImpl(p,dr,conds,eq.color).forEach(function(t){traces.push(t);});
+    } else if(p.type==='ineq'){
+      drawIneq(p,dr,conds,eq.color).forEach(function(t){traces.push(t);});
     }
-    zs.push(row);
+  });
+
+  // Crossings between explicit curves
+  var explItems=items.filter(function(x){return x.p&&x.p.type==='expl';});
+  if(explItems.length>=2) crosses(explItems,cr.x0,cr.x1).forEach(function(pt){sols.push(pt);});
+
+  // Intersection region for multiple inequalities
+  var iqItems=items.filter(function(x){return x.p&&x.p.type==='ineq';});
+  if(iqItems.length>=2){
+    var it=iqIntersect(iqItems,dr); if(it) traces.push(it);
+    document.getElementById('legSol').style.display='flex';
+  } else {
+    document.getElementById('legSol').style.display='none';
   }
 
-  const layout={
-    paper_bgcolor:'#0a0a0a',
-    scene:{
-      bgcolor:'#0a0a0a',
-      xaxis: axis3DBase(v1),
-      yaxis: axis3DBase(v2),
-      zaxis: axis3DBase('f'),
-      camera:{eye:{x:1.6,y:1.6,z:1.2}},
-      aspectmode:'auto',
+  // Solution markers
+  if(sols.length){
+    var uniq=[];
+    sols.forEach(function(pt){
+      if(!uniq.some(function(u){return Math.abs(u.x-pt.x)<0.05&&Math.abs(u.y-pt.y)<0.05;}))
+        uniq.push(pt);
+    });
+    traces.push({
+      type:'scatter',mode:'markers+text',
+      x:uniq.map(function(p){return p.x;}),
+      y:uniq.map(function(p){return p.y;}),
+      text:uniq.map(function(p){return p.lbl;}),
+      textposition:'top center',
+      marker:{color:'#fbbf24',size:8,line:{color:'#080808',width:1.5}},
+      textfont:{color:'#fbbf24',size:9},
+      hovertemplate:'x=%{x:.4f}<br>y=%{y:.4f}<extra>Nuqta</extra>',
+      showlegend:false,name:''
+    });
+    showSols(uniq);
+  } else {hideSols();}
+
+  Plotly.react('graph',traces,lay2D(dr),pcfg());
+  resizePlot();
+  document.getElementById('ehint').style.display='none';
+  setP('ok',items.length+' grafik');
+  document.getElementById('ginfo').innerHTML='<b>'+items.length+'</b> qator';
+}
+
+// ─── EXPLICIT y=f(x) ─────────────────────────────────
+function drawExpl(expr,x0,x1,color,conds){
+  var N=2000, step=(x1-x0)/(N-1);
+  var xs=[],ys=[],hx=[],hy=[],roots=[];
+  var pY=null,pX=null;
+  for(var i=0;i<N;i++){
+    var xv=x0+i*step, yv=null;
+    try{
+      yv=math.evaluate(expr,{x:xv});
+      if(typeof yv!=='number'||!isFinite(yv)) yv=null;
+    }catch(e){}
+    xs.push(xv); ys.push(yv);
+    var inC=yv!==null&&testC(conds,xv,yv);
+    if(inC){
+      hx.push(xv); hy.push(yv);
+      if(pY!==null&&pY*yv<0){
+        var rx=+((pX+xv)/2).toFixed(4);
+        roots.push({x:rx,y:0,lbl:'x='+rx});
+      }
+    } else {
+      if(hx.length&&hx[hx.length-1]!==null){hx.push(null);hy.push(null);}
+    }
+    if(yv!==null){pY=yv;pX=xv;}else{pY=null;}
+  }
+  var main={type:'scatter',mode:'lines',x:xs,y:ys,
+    line:{color:color,width:2.5},connectgaps:false,
+    hovertemplate:'x=%{x:.3f}<br>y=%{y:.3f}<extra></extra>',showlegend:false,name:''};
+  var hi=null;
+  if(conds&&hx.filter(function(v){return v!==null;}).length){
+    hi={type:'scatter',mode:'lines',x:hx,y:hy,
+      line:{color:'#fbbf24',width:5},connectgaps:false,
+      opacity:.75,hoverinfo:'skip',showlegend:false,name:''};
+  }
+  return{main:main,hi:hi,roots:roots};
+}
+
+// ─── IMPLICIT F(x,y)=0 ───────────────────────────────
+function drawImpl(p,dr,conds,color){
+  var N=300;
+  var xs=linsp(dr.x0,dr.x1,N), ys=linsp(dr.y0,dr.y1,N);
+  var vx=p.vars[0]||'x', vy=p.vars[1]||'y';
+  var Z=buildZ(p.diff,vx,vy,xs,ys);
+  var traces=[];
+  if(conds){
+    var Zm=[];
+    for(var j=0;j<N;j++){
+      var row=[];
+      for(var i=0;i<N;i++) row.push(testC(conds,xs[i],ys[j])?Z[j][i]:NaN);
+      Zm.push(row);
+    }
+    // Faint full curve
+    traces.push({type:'contour',x:xs,y:ys,z:Z,
+      contours:{start:0,end:0,size:1,coloring:'none'},
+      line:{color:color,width:1,dash:'dot',smoothing:1},
+      ncontours:1,showscale:false,hoverinfo:'skip',showlegend:false,name:'',opacity:.25});
+    // Bold masked curve in yellow
+    traces.push({type:'contour',x:xs,y:ys,z:Zm,
+      contours:{start:0,end:0,size:1,coloring:'none'},
+      line:{color:'#fbbf24',width:3,smoothing:1.2},
+      ncontours:1,showscale:false,hoverinfo:'skip',showlegend:false,name:''});
+  } else {
+    traces.push({type:'contour',x:xs,y:ys,z:Z,
+      contours:{start:0,end:0,size:1,coloring:'none'},
+      line:{color:color,width:2.5,smoothing:1.2},
+      ncontours:1,showscale:false,hoverinfo:'skip',showlegend:false,name:''});
+  }
+  return traces;
+}
+
+// ─── INEQUALITY ──────────────────────────────────────
+function drawIneq(p,dr,conds,color){
+  var N=220;
+  var xs=linsp(dr.x0,dr.x1,N), ys=linsp(dr.y0,dr.y1,N);
+  var f; try{f=math.compile(p.diff);}catch(e){return[];}
+  var mask=[];
+  for(var j=0;j<N;j++){
+    var row=[];
+    for(var i=0;i<N;i++){
+      var xv=xs[i],yv=ys[j],val=NaN;
+      try{val=f.evaluate({x:xv,y:yv});}catch(e){}
+      var ok=false;
+      if(typeof val==='number'&&isFinite(val)){
+        if(p.op==='>') ok=val>0;
+        else if(p.op==='>=') ok=val>=0;
+        else if(p.op==='<') ok=val<0;
+        else if(p.op==='<=') ok=val<=0;
+      }
+      if(ok&&conds) ok=testC(conds,xv,yv);
+      row.push(ok?0.6:null);
+    }
+    mask.push(row);
+  }
+  var rgba=h2r(color,.28), rgba0=h2r(color,.0);
+  var traces=[{type:'heatmap',x:xs,y:ys,z:mask,
+    colorscale:[[0,rgba0],[0.49,rgba0],[0.5,rgba],[1,rgba]],
+    showscale:false,hoverinfo:'skip',zmin:0,zmax:1,name:''}];
+  var Z=buildZ(p.diff,'x','y',xs,ys);
+  traces.push({type:'contour',x:xs,y:ys,z:Z,
+    contours:{start:0,end:0,size:1,coloring:'none'},
+    line:{color:color,width:2,dash:(p.op==='>'||p.op==='<')?'dash':'solid',smoothing:1.2},
+    ncontours:1,showscale:false,hoverinfo:'skip',showlegend:false,name:''});
+  return traces;
+}
+
+// ─── INEQUALITY INTERSECTION ─────────────────────────
+function iqIntersect(items,dr){
+  var N=200;
+  var xs=linsp(dr.x0,dr.x1,N), ys=linsp(dr.y0,dr.y1,N);
+  var cmb=[];
+  for(var j=0;j<N;j++){var r=[];for(var i=0;i<N;i++)r.push(1);cmb.push(r);}
+  items.forEach(function(item){
+    var p=item.p,conds=item.conds,f;
+    try{f=math.compile(p.diff);}catch(e){return;}
+    for(var j=0;j<N;j++) for(var i=0;i<N;i++){
+      if(!cmb[j][i]) continue;
+      var val=NaN;
+      try{val=f.evaluate({x:xs[i],y:ys[j]});}catch(e){}
+      var ok=false;
+      if(typeof val==='number'&&isFinite(val)){
+        if(p.op==='>') ok=val>0;
+        else if(p.op==='>=') ok=val>=0;
+        else if(p.op==='<') ok=val<0;
+        else if(p.op==='<=') ok=val<=0;
+      }
+      if(ok&&conds) ok=testC(conds,xs[i],ys[j]);
+      cmb[j][i]=ok?1:0;
+    }
+  });
+  var sz=[];
+  for(var j=0;j<N;j++){var r=[];for(var i=0;i<N;i++)r.push(cmb[j][i]?1:null);sz.push(r);}
+  return{type:'heatmap',x:xs,y:ys,z:sz,
+    colorscale:[[0,'rgba(251,191,36,0)'],[0.49,'rgba(251,191,36,0)'],[0.5,'rgba(251,191,36,.35)'],[1,'rgba(251,191,36,.35)']],
+    showscale:false,hoverinfo:'skip',zmin:0,zmax:1,name:'Kesishma'};
+}
+
+// ─── FIND CROSSINGS between explicit curves ──────────
+function crosses(items,x0,x1){
+  var pts=[];
+  for(var a=0;a<items.length-1;a++) for(var b=a+1;b<items.length;b++){
+    var pA=items[a].p, pB=items[b].p; if(!pA||!pB) continue;
+    var N=3000, step=(x1-x0)/(N-1), pvD=null;
+    for(var i=0;i<N;i++){
+      var xv=x0+i*step;
+      try{
+        var yA=math.evaluate(pA.exprN,{x:xv}), yB=math.evaluate(pB.exprN,{x:xv});
+        var d=(isFinite(yA)&&isFinite(yB))?yA-yB:null;
+        if(d!==null&&pvD!==null&&d*pvD<0){
+          var rx=+(xv-step/2).toFixed(3), ry=+math.evaluate(pA.exprN,{x:rx}).toFixed(3);
+          if(!pts.some(function(p){return Math.abs(p.x-rx)<0.08;}))
+            pts.push({x:rx,y:ry,lbl:'('+rx+','+ry+')'});
+        }
+        pvD=d;
+      }catch(e){}
+    }
+  }
+  return pts.slice(0,30);
+}
+
+// ════════════════════════════════════════════════════════
+//  3D PLOTTING
+// ════════════════════════════════════════════════════════
+function do3D(items){
+  IS3D=true;
+  var dr=DR(), N=65;
+  var xs=linsp(dr.x0,dr.x1,N), ys=linsp(dr.y0,dr.y1,N);
+  var traces=[], cmaps=['Plasma','Viridis','RdBu_r','Hot','Cividis'], ci=0;
+  items.forEach(function(item){
+    var p=item.p; if(!p||p.type!=='surf') return;
+    var f; try{f=math.compile(p.exprN);}catch(e){return;}
+    var Z=[];
+    for(var j=0;j<N;j++){
+      var row=[];
+      for(var i=0;i<N;i++){
+        try{var z=f.evaluate({x:xs[i],y:ys[j]});row.push(isFinite(z)?z:null);}
+        catch(e){row.push(null);}
+      }
+      Z.push(row);
+    }
+    traces.push({type:'surface',x:xs,y:ys,z:Z,
+      colorscale:cmaps[ci++%cmaps.length],opacity:.9,showscale:false,
+      hovertemplate:'x=%{x:.2f}<br>y=%{y:.2f}<br>z=%{z:.2f}<extra></extra>'});
+  });
+  Plotly.react('graph',traces,lay3D(dr),pcfg());
+  resizePlot();
+  document.getElementById('ehint').style.display='none';
+  setP('ok','3D · '+traces.length+' sirt');
+  document.getElementById('ginfo').innerHTML='<b>3D</b>';
+}
+
+// ════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════
+function buildZ(diff,vx,vy,xs,ys){
+  var N=xs.length, f;
+  try{f=math.compile(diff);}catch(e){
+    return xs.map(function(){return xs.map(function(){return NaN;});});
+  }
+  var Z=[];
+  for(var j=0;j<N;j++){
+    var row=[];
+    for(var i=0;i<N;i++){
+      var val=NaN;
+      try{
+        var sc={}; sc[vx]=xs[i]; sc[vy]=ys[j];
+        val=f.evaluate(sc);
+        if(!isFinite(val)) val=NaN;
+      }catch(e){}
+      row.push(val);
+    }
+    Z.push(row);
+  }
+  return Z;
+}
+function linsp(a,b,n){var arr=[],s=(b-a)/(n-1);for(var i=0;i<n;i++)arr.push(+(a+i*s));return arr;}
+function h2r(hex,a){
+  var r=parseInt(hex.slice(1,3),16)||129;
+  var g=parseInt(hex.slice(3,5),16)||140;
+  var b=parseInt(hex.slice(5,7),16)||248;
+  return 'rgba('+r+','+g+','+b+','+a+')';
+}
+function resizePlot(){setTimeout(function(){try{Plotly.Plots.resize(document.getElementById('graph'));}catch(e){}},60);}
+
+// ════════════════════════════════════════════════════════
+//  LAYOUTS
+// ════════════════════════════════════════════════════════
+function dtick(span){return span>80?20:span>40?10:span>20?5:span>10?2:1;}
+function lay2D(dr){
+  var gc=GRIDON?'#1c1c1c':'transparent';
+  var ya={
+    title:{text:'y',font:{color:'#facc15',size:12}},
+    color:'#facc15',gridcolor:gc,gridwidth:1,
+    dtick:dtick(dr.y1-dr.y0),tick0:0,tickmode:'linear',
+    range:[dr.y0,dr.y1],
+    zerolinecolor:'#facc15',zerolinewidth:2,
+    linecolor:'#facc15',linewidth:1.5,showline:true,
+    tickcolor:'#facc15',tickfont:{color:'#9a7c10',size:10},
+    showgrid:GRIDON
+  };
+  if(RATIOON){ya.scaleanchor='x';ya.scaleratio=1;}
+  return{
+    paper_bgcolor:'#080808',plot_bgcolor:'#080808',
+    font:{color:'#555',family:'Segoe UI,sans-serif',size:11},
+    margin:{l:50,r:14,t:12,b:48},
+    dragmode:DRAG,
+    xaxis:{
+      title:{text:'x',font:{color:'#38bdf8',size:12}},
+      color:'#38bdf8',gridcolor:gc,gridwidth:1,
+      dtick:dtick(dr.x1-dr.x0),tick0:0,tickmode:'linear',
+      range:[dr.x0,dr.x1],
+      zerolinecolor:'#38bdf8',zerolinewidth:2,
+      linecolor:'#38bdf8',linewidth:1.5,showline:true,
+      tickcolor:'#38bdf8',tickfont:{color:'#2e7a99',size:10},
+      showgrid:GRIDON
     },
-    font:{color:'#888', family:'Segoe UI,system-ui,sans-serif', size:11},
-    margin:{l:0,r:0,t:20,b:0},
+    yaxis:ya,showlegend:false,hovermode:'closest',
+    hoverlabel:{bgcolor:'#181818',bordercolor:'#333',font:{color:'#ccc',size:11}}
   };
-
-  const trace={
-    type:'surface', x:xs, y:ys, z:zs,
-    colorscale:[[0,'#10b981'],[0.25,'#0891b2'],[0.5,'#2563eb'],[0.75,'#7c3aed'],[1,'#c4b5fd']],
-    contours:{z:{show:true,color:'rgba(255,255,255,0.2)',width:1,highlight:true}},
-    hovertemplate:`${v1}: %{x:.2f}<br>${v2}: %{y:.2f}<br>z: %{z:.2f}<extra></extra>`,
-    lighting:{ambient:0.7,diffuse:0.6,specular:0.3,roughness:0.5},
-    showscale:true,
-    colorbar:{tickfont:{color:'#555'},title:{text:'z',font:{color:'#666'}}},
-  };
-
-  Plotly.react('graph',[trace], layout, PLOTLY_CONFIG);
 }
-
-function linspace(a,b,n){
-  const arr=[], step=(b-a)/(n-1);
-  for(let i=0;i<n;i++) arr.push(+(a+i*step).toFixed(8));
-  return arr;
+function lay3D(dr){
+  function ax(t,c){return{title:{text:t,font:{color:c,size:11}},gridcolor:'#1e1e1e',
+    backgroundcolor:'#0c0c0c',showbackground:true,zerolinecolor:c,zerolinewidth:2,
+    color:c,tickfont:{color:'#444',size:9}};}
+  return{paper_bgcolor:'#080808',
+    scene:{bgcolor:'#080808',xaxis:ax('x','#38bdf8'),yaxis:ax('y','#facc15'),zaxis:ax('z','#a78bfa'),
+      camera:{eye:{x:1.6,y:1.6,z:1.2}},aspectmode:'auto'},
+    font:{color:'#555',size:11},margin:{l:0,r:0,t:20,b:0}};
 }
+function pcfg(){return{responsive:true,scrollZoom:true,displayModeBar:true,
+  modeBarButtonsToRemove:['select2d','lasso2d'],displaylogo:false};}
 
-function zoomIn(){
-  if(is3D){
-    const el=document.getElementById('graph');
-    if(!el._fullLayout) return;
-    const cam=el._fullLayout.scene.camera;
-    const f=0.75;
-    Plotly.relayout('graph',{'scene.camera.eye':{x:cam.eye.x*f,y:cam.eye.y*f,z:cam.eye.z*f}});
-  } else {
-    const el=document.getElementById('graph');
-    if(!el._fullLayout) return;
-    const xa=el._fullLayout.xaxis, ya=el._fullLayout.yaxis;
-    const xm=(xa.range[0]+xa.range[1])/2, xr=(xa.range[1]-xa.range[0])*0.35;
-    const ym=(ya.range[0]+ya.range[1])/2, yr=(ya.range[1]-ya.range[0])*0.35;
-    Plotly.relayout('graph',{'xaxis.range':[xm-xr, xm+xr],'yaxis.range':[ym-yr, ym+yr]});
-  }
+// ════════════════════════════════════════════════════════
+//  TOOLBAR ACTIONS
+// ════════════════════════════════════════════════════════
+function doZoom(f){
+  var el=document.getElementById('graph');
+  try{
+    if(IS3D){
+      var cam=el._fullLayout.scene.camera;
+      Plotly.relayout('graph',{'scene.camera.eye':{x:cam.eye.x*f,y:cam.eye.y*f,z:cam.eye.z*f}});
+    } else {
+      var xa=el._fullLayout.xaxis, ya=el._fullLayout.yaxis;
+      var xm=(xa.range[0]+xa.range[1])/2, xr=(xa.range[1]-xa.range[0])*f/2;
+      var ym=(ya.range[0]+ya.range[1])/2, yr=(ya.range[1]-ya.range[0])*f/2;
+      Plotly.relayout('graph',{'xaxis.range':[xm-xr,xm+xr],'yaxis.range':[ym-yr,ym+yr]});
+    }
+  }catch(e){}
 }
-
-function zoomOut(){
-  if(is3D){
-    const el=document.getElementById('graph');
-    if(!el._fullLayout) return;
-    const cam=el._fullLayout.scene.camera;
-    const f=1.35;
-    Plotly.relayout('graph',{'scene.camera.eye':{x:cam.eye.x*f,y:cam.eye.y*f,z:cam.eye.z*f}});
-  } else {
-    const el=document.getElementById('graph');
-    if(!el._fullLayout) return;
-    const xa=el._fullLayout.xaxis, ya=el._fullLayout.yaxis;
-    const xm=(xa.range[0]+xa.range[1])/2, xr=(xa.range[1]-xa.range[0])*0.7;
-    const ym=(ya.range[0]+ya.range[1])/2, yr=(ya.range[1]-ya.range[0])*0.7;
-    Plotly.relayout('graph',{'xaxis.range':[xm-xr, xm+xr],'yaxis.range':[ym-yr, ym+yr]});
-  }
+function toggleDrag(){
+  DRAG=DRAG==='pan'?'zoom':'pan';
+  var btn=document.getElementById('btnPan');
+  btn.textContent=DRAG==='pan'?'✥ Pan':'🔍 Zoom';
+  btn.classList.toggle('on',DRAG==='pan');
+  if(!IS3D) try{Plotly.relayout('graph',{dragmode:DRAG});}catch(e){}
 }
-
-function toggleMode(){
-  if(is3D) return;
-  dragMode = dragMode==='pan' ? 'zoom' : 'pan';
-  const btn = document.getElementById('mode-btn');
-  btn.textContent = dragMode==='pan' ? '\u2725 Surish' : '\u2b1c Zoom';
-  btn.classList.toggle('active', dragMode==='pan');
-  Plotly.relayout('graph',{dragmode: dragMode});
-}
-
 function toggleGrid(){
-  gridVisible=!gridVisible;
-  const btn=document.getElementById('grid-btn');
-  btn.textContent = gridVisible ? 'Grid \u2713' : 'Grid';
-  if(is3D){
-    Plotly.relayout('graph',{
-      'scene.xaxis.showgrid':gridVisible,
-      'scene.yaxis.showgrid':gridVisible,
-      'scene.zaxis.showgrid':gridVisible,
+  GRIDON=!GRIDON;
+  var btn=document.getElementById('btnGrid');
+  btn.textContent=GRIDON?'⊞ Grid':'⊡ Grid';
+  btn.classList.toggle('on',GRIDON);
+  try{
+    if(IS3D) Plotly.relayout('graph',{'scene.xaxis.showgrid':GRIDON,'scene.yaxis.showgrid':GRIDON,'scene.zaxis.showgrid':GRIDON});
+    else Plotly.relayout('graph',{'xaxis.showgrid':GRIDON,'yaxis.showgrid':GRIDON});
+  }catch(e){}
+}
+function toggleRatio(){
+  RATIOON=!RATIOON;
+  var btn=document.getElementById('btnRatio');
+  btn.classList.toggle('on',RATIOON);
+  btn.textContent=RATIOON?'⊞ 1:1':'⊡ 1:1';
+  sched();
+}
+function doReset(){
+  try{
+    if(IS3D) Plotly.relayout('graph',{'scene.camera':{eye:{x:1.6,y:1.6,z:1.2}}});
+    else{var dr=DR();Plotly.relayout('graph',{'xaxis.range':[dr.x0,dr.x1],'yaxis.range':[dr.y0,dr.y1]});}
+  }catch(e){}
+}
+function clearPlot(){
+  try{Plotly.purge('graph');}catch(e){}
+  document.getElementById('ehint').style.display='flex';
+  hideSols();
+  document.getElementById('legSol').style.display='none';
+  setP('ok','Tayyor');
+  document.getElementById('ginfo').textContent='';
+}
+function clearAll(){EQS=[];FID=null;renderList();clearPlot();}
+
+function setP(cls,msg){var el=document.getElementById('pill');el.textContent=msg;el.className='pill '+cls;}
+function showSols(pts){
+  var bar=document.getElementById('solbar'), chips=document.getElementById('solchips');
+  bar.style.display='block';
+  chips.innerHTML=pts.map(function(p){return'<span class="solchip">'+p.lbl+'</span>';}).join('');
+}
+function hideSols(){document.getElementById('solbar').style.display='none';}
+
+// ════════════════════════════════════════════════════════
+//  KEYBOARD
+// ════════════════════════════════════════════════════════
+var KB=[
+  [{l:'x',v:'x'},{l:'y',v:'y'},{l:'z',v:'z'},{l:'(',v:'('},{l:')',v:')'},
+   {l:'+',v:'+'},{l:'−',v:'-',c:'op'},{l:'×',v:'*',c:'op'},{l:'÷',v:'/',c:'op'},{l:'=',v:'='},{l:'^',v:'^'}],
+  [{l:'x²',v:'^2',c:'ac'},{l:'xⁿ',v:'^(',c:'ac'},{l:'√',v:'sqrt(',c:'ac'},
+   {l:'|x|',v:'abs(',c:'ac'},{l:'π',v:'pi',c:'ac'},{l:'e',v:'e',c:'ac'},{l:'∞',v:'Infinity',c:'ac'},{l:'⌫',v:'__bs__'}],
+  [{l:'sin',v:'sin(',c:'fn'},{l:'cos',v:'cos(',c:'fn'},{l:'tan',v:'tan(',c:'fn'},
+   {l:'ln',v:'log(',c:'fn'},{l:'log₁₀',v:'log10(',c:'fn'},{l:'exp',v:'exp(',c:'fn'},
+   {l:'asin',v:'asin(',c:'fn'},{l:'atan',v:'atan(',c:'fn'}],
+  [{l:'>',v:'>',c:'op'},{l:'<',v:'<',c:'op'},{l:'≥',v:'>=',c:'op'},{l:'≤',v:'<=',c:'op'},
+   {l:'&&',v:' && ',c:'op'},{l:'0',v:'0'},{l:'1',v:'1'},{l:'2',v:'2'},{l:'3',v:'3'},{l:'4',v:'4'},
+   {l:'5',v:'5'},{l:'6',v:'6'},{l:'7',v:'7'},{l:'8',v:'8'},{l:'9',v:'9'},{l:'.',v:'.'}]
+];
+function buildKB(){
+  var c=document.getElementById('kbRows');
+  KB.forEach(function(row){
+    var rEl=document.createElement('div'); rEl.className='kbrow';
+    row.forEach(function(b){
+      var btn=document.createElement('button');
+      btn.className='kbtn'+(b.c?' '+b.c:'');
+      btn.textContent=b.l;
+      btn.onclick=function(){insKey(b.v);};
+      rEl.appendChild(btn);
     });
+    c.appendChild(rEl);
+  });
+}
+function insKey(val){
+  var id=FID!==null?FID:(EQS.length?EQS[EQS.length-1].id:null);
+  if(id===null){addEq();return;}
+  var sel=KBFIELD==='cond'?
+    document.querySelector('.condin[data-cond="'+id+'"]'):
+    document.querySelector('.exin[data-id="'+id+'"]');
+  if(!sel) return;
+  sel.focus();
+  var s=sel.selectionStart||0, e=sel.selectionEnd||0;
+  if(val==='__bs__'){
+    if(s===e&&s>0){sel.value=sel.value.slice(0,s-1)+sel.value.slice(e);sel.setSelectionRange(s-1,s-1);}
+    else{sel.value=sel.value.slice(0,s)+sel.value.slice(e);sel.setSelectionRange(s,s);}
   } else {
-    Plotly.relayout('graph',{'xaxis.showgrid':gridVisible,'yaxis.showgrid':gridVisible});
+    sel.value=sel.value.slice(0,s)+val+sel.value.slice(e);
+    sel.setSelectionRange(s+val.length,s+val.length);
   }
+  if(KBFIELD==='cond') onCond(id,sel.value); else onExpr(id,sel.value);
 }
 
-function resetView(){
-  if(is3D){
-    Plotly.relayout('graph',{'scene.camera':{eye:{x:1.6,y:1.6,z:1.2}}});
-  } else {
-    // Reset to original -10..10 range
-    Plotly.relayout('graph',{
-      'xaxis.range':[AXIS_LO, AXIS_HI],
-      'yaxis.range':[AXIS_LO, AXIS_HI],
-      'xaxis.dtick': 1,
-      'yaxis.dtick': 1,
-    });
-  }
+// ════════════════════════════════════════════════════════
+//  GUIDE MODAL
+// ════════════════════════════════════════════════════════
+function openGuide(){document.getElementById('guideModal').classList.add('open');}
+function closeGuide(){document.getElementById('guideModal').classList.remove('open');}
+
+// Guide example loaders (called from onclick in guide HTML)
+function gL(expr){closeGuide();addEq(expr);}
+function gL1(expr,cond){closeGuide();addEq(expr,undefined,cond);}
+function gL2(exprs){closeGuide();exprs.forEach(function(ex){addEq(ex);});}
+function gL3(exprs){closeGuide();exprs.forEach(function(ex){addEq(ex);});}
+
+// Section toggle
+function toggleSec(hid,bid){
+  document.getElementById(hid).classList.toggle('open');
+  document.getElementById(bid).classList.toggle('open');
 }
 
-document.getElementById('formula').addEventListener('keydown',e=>{
-  if(e.key==='Enter') plot();
+// ════════════════════════════════════════════════════════
+//  INIT — wire all buttons after DOM ready
+// ════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function(){
+
+  // Topbar buttons
+  document.getElementById('btnClear').onclick = clearAll;
+  document.getElementById('btnPlot').onclick  = function(){clearTimeout(PTM);plotAll();};
+  document.getElementById('btnGuide').onclick = openGuide;
+
+  // Guide close
+  document.getElementById('btnGClose').onclick = closeGuide;
+  document.getElementById('guideModal').onclick = function(e){if(e.target===this)closeGuide();};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeGuide();});
+
+  // Add equation button
+  document.getElementById('btnAdd').onclick = function(){addEq();};
+
+  // Graph toolbar
+  document.getElementById('btnZI').onclick   = function(){doZoom(.7);};
+  document.getElementById('btnZO').onclick   = function(){doZoom(1.4);};
+  document.getElementById('btnPan').onclick  = toggleDrag;
+  document.getElementById('btnGrid').onclick = toggleGrid;
+  document.getElementById('btnRatio').onclick= toggleRatio;
+  document.getElementById('btnReset').onclick= doReset;
+  document.getElementById('btnPNG').onclick  = function(){
+    Plotly.downloadImage('graph',{format:'png',width:1800,height:1400,filename:'grafik',scale:2});
+  };
+
+  // Range section toggle
+  document.getElementById('hdrR').onclick = function(){toggleSec('hdrR','bodyR');};
+
+  // Auto range button
+  document.getElementById('btnAuto').onclick = function(){
+    ['xmin','xmax','ymin','ymax'].forEach(function(id,i){
+      document.getElementById(id).value=['-10','10','-10','10'][i];
+    });
+    sched();
+  };
+
+  // Range input changes → replot
+  ['xmin','xmax','ymin','ymax','zmin','zmax'].forEach(function(id){
+    document.getElementById(id).addEventListener('change',sched);
+  });
+
+  // Resize observer for Plotly
+  if(window.ResizeObserver){
+    new ResizeObserver(function(){
+      if(document.getElementById('ehint').style.display==='none') resizePlot();
+    }).observe(document.getElementById('gouter'));
+  }
+
+  // Build math keyboard
+  buildKB();
+
+  // Initial example equations
+  addEq('y=sin(x)', COLORS[0]);
+  addEq('x^2+y^2=9', COLORS[1]);
+
+  // Plot after short delay (let Plotly initialize)
+  setTimeout(function(){clearTimeout(PTM);plotAll();}, 300);
 });
 </script>
 </body>
